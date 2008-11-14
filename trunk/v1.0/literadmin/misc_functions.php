@@ -102,6 +102,54 @@ global $current_dir, $settings, $is_logged;
 
 function db_list() {
 global $settings, $is_logged;
+  # This will build the drop down
+  # of all the editable databases
+  # in the $settings['db'] array
+  # Now if this isn't an array,
+  # well we must be dealing with 
+  # one database, but also if
+  # we only have 1 thing in the
+  # db, its the same thing ;)
+  if(count($settings['db']) > 1 && is_array($settings['db'])) {
+    # Loop through all the databases :)
+    echo '
+    <form action="', $_SERVER['PHP_SELF'], '" method="post">
+      <td>
+      <select name="switch_db">';
+        foreach($settings['db'] as $db) {
+          # Now we need to get the DB name :)
+          $db_name = $db;
+          # Any / in it..?
+          if(substr_count('/', $db)) {
+            # Explosions! yay
+            $tmp = explode('/', $db);
+            # Now get the last one
+            $db_name = $tmp[count($tmp)];
+          }
+          # Now we need to get the .db/.sql out
+          # of the file name :)
+          if(substr_count('.', $db_name)) {
+            $tmp = explode('.', $db_name);
+            # We don't want to remove everything
+            if(count($tmp) > 2) {
+              $db_name = '';
+              for($i = 0; $i <= (count($tmp) - 1); $i++) {
+                $db_name .= $tmp[$i].'.';
+              }
+            }
+            else
+              $db_name = $tmp[0];
+          }
+          echo '
+            <option value="', htmlspecialchars($db, ENT_QUOTES), '">', $db_name, '</option>';  
+        }
+    echo '
+      </select>
+      </td>
+      <td><input name="proc_db_switch" type="submit" value="Go"/></td>
+    </form>';
+  }
+  # Nothing if otherwise :P
 }
 
 # This processes (sorta) the Login
