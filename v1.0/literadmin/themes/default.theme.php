@@ -195,6 +195,7 @@ a:hover {
   margin-left: auto;
   background: #ffffff;
   text-align: center;
+  margin-top: 30px;
   border: 1px solid #D5D1B8;
 }
 #powered_by {

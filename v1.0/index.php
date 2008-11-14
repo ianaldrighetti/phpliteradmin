@@ -27,7 +27,26 @@ $act = !empty($_REQUEST['act']) ? $_REQUEST['act'] : '';
 # Lets build an array of actions we can
 # do :) but only if you are logged in.
 if($is_logged && !$settings['locked_down']) {
-
+  $literActions = array(
+    'edit_rows' => array('liter_edit.php','print_edit'),
+    'export' => array('liter_export.php','export_db'),
+    'help' => array('liter_help.php','FAQ'),
+    'import' => array('liter_import.php','print_import'),
+    'insert' => array('liter_insert.php','print_insert'),
+    'logout' => array('liter_login.php','literLogout'),
+    'server_info' => array('liter_info.php','print_info')
+  );
+  if(is_array($literActions[$act])) {
+    # We are doing something... very
+    # interesting
+    require_once($current_dir. '/literadmin/'. $literActions[$act][0]);
+    $literActions[$act][1]();
+  }
+  else {
+    # Hmm... Show the Table List ;)
+    require_once($current_dir. '/literadmin/tbl_list.php');
+    print_main();
+  }
 }
 elseif(!$is_logged && !$settings['locked_down']) {
   # Not logged in? !!!! D:
@@ -40,6 +59,12 @@ else {
   # logged in :)
   $is_logged = false;
   template_header('phpLiterAdmin Locked Down', false);
+  
+  echo '
+  <div id="lockdown">
+    <h1>Lock Down</h1>
+    <p class="error">Sorry! But phpLiterAdmin is currently on <strong>Lock Down</strong> and cannot be accessed until the Setting is changed in the litersettings.php file</p>
+  </div>';
   
   template_footer();
 }

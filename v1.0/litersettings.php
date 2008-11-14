@@ -36,7 +36,7 @@ $settings['show_indexes'] = false;
 # which means no matter what no one can
 # have access to anything here without setting
 # this back to 0...
-$settings['locked_down'] = 1;
+$settings['locked_down'] = 0;
 
 # A useful feature :D You can add/remove
 # SQLite Databases to this array and switch
