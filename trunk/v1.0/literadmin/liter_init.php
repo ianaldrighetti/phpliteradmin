@@ -50,4 +50,7 @@ if(empty($_SESSION['user']) && empty($_SESSION['pass']) && !empty($_COOKIE['user
 $is_logged = false;
 if(!empty($settings['users'][$_SESSION['user']]) && $_SESSION['pass'] == sha1($settings['users'][$_SESSION['user']]))
   $is_logged = true;
+
+# Connect to the SQLite DB
+db_connect();
 ?>

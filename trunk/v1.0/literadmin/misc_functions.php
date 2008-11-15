@@ -110,46 +110,42 @@ global $settings, $is_logged;
   # one database, but also if
   # we only have 1 thing in the
   # db, its the same thing ;)
-  if(count($settings['db']) > 1 && is_array($settings['db'])) {
-    # Loop through all the databases :)
-    echo '
-    <form action="', $_SERVER['PHP_SELF'], '" method="post">
-      <td>
-      <select name="switch_db">';
-        foreach($settings['db'] as $db) {
-          # Now we need to get the DB name :)
-          $db_name = $db;
-          # Any / in it..?
-          if(substr_count('/', $db)) {
-            # Explosions! yay
-            $tmp = explode('/', $db);
-            # Now get the last one
-            $db_name = $tmp[count($tmp)];
-          }
-          # Now we need to get the .db/.sql out
-          # of the file name :)
-          if(substr_count('.', $db_name)) {
-            $tmp = explode('.', $db_name);
-            # We don't want to remove everything
-            if(count($tmp) > 2) {
-              $db_name = '';
-              for($i = 0; $i <= (count($tmp) - 1); $i++) {
-                $db_name .= $tmp[$i].'.';
-              }
+  # But first, are they logged in?
+  if($is_logged) {
+    if(count($settings['db']) > 1 && is_array($settings['db'])) {
+      # Loop through all the databases :)
+      echo '
+      <form action="', $_SERVER['PHP_SELF'], '" method="post">
+        <td>
+        <select name="switch_db">';
+          foreach($settings['db'] as $db) {
+            # Now we need to get the DB name :)
+            $db_name = $db;
+            # Any / in it..?
+            if(substr_count($db, '/')) {
+              # Explosions! yay
+              $tmp = explode('/', $db);
+              # Now get the last one
+              $db_name = $tmp[count($tmp) - 1];
             }
+            # Now we need to get the .db/.sql out
+            # of the file name :)
+            # Is this selected...?
+            if($_SESSION['current_db'] == $db)
+              $selected = ' selected="yes"';
             else
-              $db_name = $tmp[0];
+              $selected = '';
+            echo '
+              <option value="', htmlspecialchars($db, ENT_QUOTES), '"', $selected, '>', $db_name, '</option>';  
           }
-          echo '
-            <option value="', htmlspecialchars($db, ENT_QUOTES), '">', $db_name, '</option>';  
-        }
-    echo '
-      </select>
-      </td>
-      <td><input name="proc_db_switch" type="submit" value="Go"/></td>
-    </form>';
+      echo '
+        </select>
+        </td>
+        <td><input name="proc_db_switch" type="submit" value="Go"/></td>
+      </form>';
+    }
+    # Nothing if otherwise :P
   }
-  # Nothing if otherwise :P
 }
 
 # This processes (sorta) the Login
@@ -191,5 +187,24 @@ global $login_error, $is_logged, $settings;
       $login_error = 'Wrong Username or Password';
     }
   }
+}
+
+# Gets and formats the size of a file
+# Thanks to http://php.net/manual/en/function.filesize.php#84034 
+function format_size($file) {
+  $size = @filesize($file);
+  $sizes = array('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
+  $total = count($sizes);
+  for($i=0; $size > 1024 && $i < $total; $i++) 
+    $size /= 1024;
+  return round($size, 2).$sizes[$i];
+}
+
+function dbSize() {
+  if(!empty($_SESSION['current_db'])) {
+    return '<p>Database Size: '. format_size($_SESSION['current_db']). '</p>';
+  }
+  else
+    return '<p class="error">No Database selected</p>';
 }
 ?>
