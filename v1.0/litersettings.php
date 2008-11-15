@@ -42,7 +42,7 @@ $settings['locked_down'] = 0;
 # SQLite Databases to this array and switch
 # from one to another without needing to edit
 # this file
-$settings['db'] = array('./db.db','settings.db');
+$settings['db'] = array('./=D/db.db','settings.db');
 
 # What theme do you want to use..? The themes
 # are located in the /literadmin/themes/

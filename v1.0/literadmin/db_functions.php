@@ -20,19 +20,30 @@ if(!defined('LiterAdmin'))
 # well, I want to, and makes it more convienient :D
 
 function db_connect() {
-global $con, $query_error, $settings;
-  # Connect to the SQLite DB :)
-  $db_name = !empty($_SESSION['current_db']) ? $_SESSION['current_db'] : '';
-  $con = @sqlite_open($db_name, 0666, $query_error);
+global $con, $is_logged, $query_error, $settings;
+  # They logged in..?
+  if($is_logged) {
+    # Before we connect we might
+    # need to switch the database
+    # we are using, maybe ;)
+    if(!empty($_REQUEST['proc_db_switch'])) {
+      $_SESSION['current_db'] = !empty($_REQUEST['switch_db']) ? htmlspecialchars_decode($_REQUEST['switch_db'], ENT_QUOTES) : '';
+    }
+    # Connect to the SQLite DB :)
+    $db_name = !empty($_SESSION['current_db']) ? $_SESSION['current_db'] : '';
+    $con = @sqlite_open($db_name, 0666, $query_error);
+  }
 }
 
 # Queries the database ;)
 function db_query($query) {
-global $con, $query_error, $num_queries;
+global $con, $num_queries, $query_error;
   # Query with the connection and all :)
   $result = @sqlite_query($con, $query, SQLITE_ASSOC, $query_error);
   # Increment query count..?
-  $num_queries = !isset($num_queries) ? 0 : $num_queries++;
+  if(!isset($num_queries))
+    $num_queries = 0;
+  $num_queries++;
   if(!$result)
     return false;
   else
@@ -75,7 +86,7 @@ function db_escape_string($str) {
 # one simple function, isn't SQLite Cool!?
 function db_exec($queries) {
 global $con, $query_error;
-  $result = @sqlite_exec($con, $query, $query_error);
+  $result = sqlite_exec($con, $queries, $query_error);
   # Return true or false :)
   return (bool)$result;
 }
