@@ -1677,6 +1677,20 @@ function print_server_info()
   template_footer();
 }
 
+# Lockdown screen!
+function print_lockdown()
+{
+  template_header('Locked Down');
+
+  echo '
+  <div id="lockdown">
+    <h1>Locked Down</h1>
+      <p>Sorry! You can\'t even try to login! This has been locked down, if you have file access, open up the file and change the $config[\'lock_down\'] variable to 0, and refresh.</p>
+  </div>';
+
+  template_footer();
+}
+
 # Our template functions... This one is quite obviously our header XD
 function template_header($title = '', $show_q = true)
 {
@@ -1689,22 +1703,26 @@ function template_header($title = '', $show_q = true)
 	<title>phpLiterAdmin ', $title ? '&raquo; '. $title : '', '</title>
 	<meta name="robots" content="noindex"/>
 	<script language="javascript" type="text/javascript">
-  <!--
   function faq(url)
   {
-	  newwindow=window.open(url,\'name\',\'height=200,width=150\');
-	  if (window.focus) {newwindow.focus()}
-	    return false;
+	  newwindow = window.open(url, \'name\', \'height=200, width=150\');
+	  if (window.focus)
+	  {
+	    newwindow.focus();
+	  }
+	  return false;
   }
-  // -->
   function select_tables(input)
   {
     first = 0;
-    for(i = 0; i < input.length; i++) {
-      if(input[i].type == "checkbox") {
+    for(i = 0; i < input.length; i++) 
+    {
+      if(input[i].type == "checkbox")
+      {
         if(first == 0)
           first = i;
-        else {
+        else
+        {
           if(input[i].checked)
             input[i].checked = \'\';
           else
@@ -1713,7 +1731,8 @@ function template_header($title = '', $show_q = true)
       }
     }
   }
-  function clear_input(input_id) {
+  function clear_input(input_id)
+  {
     handle = document.getElementById(input_id);
     handle.value = \'\';
   }
@@ -1736,174 +1755,206 @@ function template_header($title = '', $show_q = true)
     }
   }
   </script>
-<style type="text/css">
-* {
-  margin: 0px;
-  padding: 0px;
-}
-body {
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  font-size: 12px;
-  background: #E5E1C6;
-}
-#header {
-  background: #5E9FBF;
-  padding: 5px;
-}
-#header #left {
-  padding-left: 5px;
-  float: left;
-}
-#header #right {
-  margin-top: 10px;
-  padding-right: 5px;
-  float: right;
-}
-#header a {
-  color: #ffffff;
-  text-decoration: none;
-}
-#header a:hover {
-  text-decoration: underline;
-}
-a {
-	color: #006699;
-}
-a:hover {
-	color: #0099CC;
-} 
-#login_area {
-  width: 250px;
-  padding: 10px;
-  margin-top: 10%;
-  margin-right: auto;
-  margin-left: auto;
-  background: #ffffff;
-  border: 1px solid #D5D1B8;
-}
-#con_error {
-  width: 700px;
-  padding: 10px;
-  margin-right: auto;
-  margin-left: auto;
-  background: #ffffff;
-  border: 1px solid #D5D1B8;
-  color: #CC0000;
-  text-align: center;
-}
-#info_center {
-  width: 99%;
-  padding: 3px;
-  background: #FFFFFF;
-  margin-bottom: 10px;
-  border: 1px solid #D5D1B8;
-}
-#export {
-  width: 400px;
-  padding: 10px;
-  margin-top: 20px;
-  margin-right: auto;
-  margin-left: auto;
-  background: #ffffff;
-  border: 1px solid #D5D1B8;
-}
-#import {
-  width: 400px;
-  padding: 10px;
-  margin-top: 20px;
-  margin-right: auto;
-  margin-left: auto;
-  background: #ffffff;
-  border: 1px solid #D5D1B8;
-}
-#insert {
-  width: 650px;
-  padding: 10px;
-  margin-right: auto;
-  margin-left: auto;
-  background: #ffffff;
-  border: 1px solid #D5D1B8;
-  margin-top: 30px;
-}
-#edit_rows {
-  width: 650px;
-  padding: 10px;
-  margin-right: auto;
-  margin-left: auto;
-  background: #ffffff;
-  border: 1px solid #D5D1B8;
-  margin-top: 30px;
-}
-#server_info {
-  width: 400px;
-  padding: 10px;
-  margin-right: auto;
-  margin-left: auto;
-  background: #ffffff;
-  border: 1px solid #D5D1B8;
-  margin-top: 30px;
-}
-#server_info .var {
-  font-weight: bold;
-}
-#server_info table td {
-  text-align: center;
-}
-#lockdown {
-  width: 500px;
-  padding: 10px;
-  margin-right: auto;
-  margin-left: auto;
-  background: #ffffff;
-  text-align: center;
-  border: 1px solid #D5D1B8;
-}
-#powered_by {
-  text-align: right;
-  font-weight: bold;
-  padding-right: 5px;
-}
-/* Some Extras */
-.break {
-  clear: both;
-}
-.bold {
-  font-weight: bold;
-}
-h1 {
-  color: #005784;
-  font-size: 16px;
-}
-.error {
-  text-align: center;
-  color: #CC0000;
-}
-th {
-  background: #0C608C;
-  padding: 1px 8px 1px 8px;
-  color: #ffffff;
-}
-tr.tr_1 {
-  background: #FFFFFF;
-}
-tr.tr_2 {
-  background: #97C0D4;
-}
-td {
-  padding: 2px 4px 2px 4px;
-}
-.center {
-  text-align: center;
-}
-.insert {
-  text-align: center;
-  font-weight: bold;
-}
-.lil_msg {
-  font-size: 10px;
-  text-align: center;
-}
-</style>
+  <style type="text/css">
+    *
+    {
+      margin: 0px;
+      padding: 0px;
+    }
+    body
+    {
+      font-family: Verdana, Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      background: #E5E1C6;
+    }
+    #header
+    {
+      background: #5E9FBF;
+      padding: 5px;
+    }
+    #header #left
+    {
+      padding-left: 5px;
+      float: left;
+    }
+    #header #right
+    {
+      margin-top: 10px;
+      padding-right: 5px;
+      float: right;
+    }
+    #header a
+    {
+      color: #ffffff;
+      text-decoration: none;
+    }
+    #header a:hover
+    {
+      text-decoration: underline;
+    }
+    a
+    {
+	    color: #006699;
+    }
+    a:hover
+    {
+      color: #0099CC;
+    } 
+    #login_area
+    {
+      width: 250px;
+      padding: 10px;
+      margin-top: 10%;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid #D5D1B8;
+    }
+    #con_error
+    {
+      width: 700px;
+      padding: 10px;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid #D5D1B8;
+      color: #CC0000;
+      text-align: center;
+    }
+    #info_center
+    {
+      width: 99%;
+      padding: 3px;
+      background: #FFFFFF;
+      margin-bottom: 10px;
+      border: 1px solid #D5D1B8;
+    }
+    #export
+    {
+      width: 400px;
+      padding: 10px;
+      margin-top: 20px;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid #D5D1B8;
+    }
+    #import
+    {
+      width: 400px;
+      padding: 10px;
+      margin-top: 20px;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid #D5D1B8;
+    }
+    #insert
+    {
+      width: 650px;
+      padding: 10px;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid #D5D1B8;
+      margin-top: 30px;
+    }
+    #edit_rows
+    {
+      width: 650px;
+      padding: 10px;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid #D5D1B8;
+      margin-top: 30px;
+    }
+    #server_info
+    {
+      width: 400px;
+      padding: 10px;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid #D5D1B8;
+      margin-top: 30px;
+    }
+    #server_info .var
+    {
+      font-weight: bold;
+    }
+    #server_info table td
+    {
+      text-align: center;
+    }
+    #lockdown
+    {
+      width: 500px;
+      padding: 10px;
+      margin-top: 20px;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      text-align: center;
+      border: 1px solid #D5D1B8;
+    }
+    #powered_by
+    {
+      text-align: right;
+      font-weight: bold;
+      padding-right: 5px;
+    }
+    .break
+    {
+      clear: both;
+    }
+    .bold
+    {
+      font-weight: bold;
+    }
+    h1
+    {
+      color: #005784;
+      font-size: 16px;
+    }
+    .error
+    {
+      text-align: center;
+      color: #CC0000;
+    }
+    th
+    {
+      background: #0C608C;
+      padding: 1px 8px 1px 8px;
+      color: #ffffff;
+    }
+    tr.tr_1
+    {
+      background: #FFFFFF;
+    }
+    tr.tr_2
+    {
+      background: #97C0D4;
+    }
+    td
+    {
+      padding: 2px 4px 2px 4px;
+    }
+    .center
+    {
+      text-align: center;
+     }
+    .insert
+    {
+      text-align: center;
+      font-weight: bold;
+    }
+    .lil_msg
+    {
+      font-size: 10px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
   <div id="header">
