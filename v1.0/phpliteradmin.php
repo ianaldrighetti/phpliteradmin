@@ -53,7 +53,7 @@ $config['lock_down'] = 0;
 # The SQLite databases you wish to manage... be sure to include
 # the correct path to them. Please note that if the database doesn't
 # exist, it is automatically created, due to how sqlite_open works.
-$config['db'] = array('./db2.db', 'settings.db');
+$config['db'] = array('./db.db', 'settings.db');
 
 # Cookie name for if someone wants to be remembered... Should
 # be changed if you have multiple phpLiterAdmin's under the same
@@ -156,6 +156,15 @@ if($config['is_logged'])
     }
     else
       $config['db_not_allowed'] = true;
+  }
+
+  # We should make sure you can access the database in your session
+  # still... Someone might have changed it :P
+  if(!in_array($_SESSION['db'], $config['db']))
+  {
+    # Unset it... and say its not allowed!
+    unset($_SESSION['db']);
+    $config['db_not_allowed'] = true;
   }
 
   # But wait... only one database? Select that!
@@ -509,6 +518,93 @@ if($config['is_logged'])
       # What did I say?!
       $config['msg'] = '<p class="error">Cannot delete from a JOIN query.</p>';
   }
+  # OooOoO! Creating a table?
+  elseif(!empty($_POST['create_execute']))
+  {
+    # Number of columns...
+    $numCols = (int)count($_POST['col']);
+
+    # Table name?
+    $tbl_name = !empty($_POST['tbl_name']) ? $_POST['tbl_name'] : '';
+
+    # Can't have 0 or less columns :P
+    if($numCols < 1)
+      $config['msg'] = '<p class="error">Can not create a table with less than 1 column.</p>';
+    elseif(empty($tbl_name))
+      $config['msg'] = '<p class="error">Table name can not be left empty.</p>';
+    else
+    {
+      # Start our template XD
+      $create_tpl = 'CREATE TABLE \''. $tbl_name. '\''. "\r\n(\r\n";
+
+      # Data types, and whether or not they can have a length ;)
+      $types = array('INTEGER' => false, 'INT' => true, 'SMALLINT' => true, 'FLOAT' => false, 'NUMERIC' => false,
+                     'TIMESTAMP' => false, 'DATE' => false, 'TEXT' => false, 'BLOB' => false, 'CLOB' => false,
+                     'VARCHAR' => true, 'NVARCHAR' => true);
+
+      # Now get the names...
+      $cols = array();
+      for($i = 0; $i < $numCols; $i++)
+      {
+        # Can't have an empty column name...
+        if(empty($_POST['col'][$i]))
+        {
+          $config['msg'] = '<p class="error">Column #'. ($i + 1). ' name empty.</p>';
+          break;
+        }
+
+        # Valid datatype?
+        if(isset($types[$_POST['datatype'][$i]]))
+        {
+          $datatype = $_POST['datatype'][$i];
+
+          # Length?
+          if($types[$_POST['datatype'][$i]] && !empty($_POST['length'][$i]))
+            $datatype .= '('. $_POST['length'][$i]. ')';
+        }
+        else
+        {
+          $config['msg'] = '<p class="error">Column #'. ($i + 1). ' has an invalid data type.</p>';
+          break;
+        }
+
+        $cols[] = rtrim('  \''. $_POST['col'][$i]. '\' '. $datatype. ' '. (!empty($_POST['null'][$i]) ? '' : 'NOT NULL '). (!empty($_POST['default'][$i]) ? 'DEFAULT \''. sqlite_escape_string($_POST['default'][$i]). '\'' : ''));
+      }
+
+      # Add the columns...
+      $create_tpl .= implode(",\r\n", $cols);
+
+      # Almost done... Primary Keys?
+      if(isset($_POST['primary']) && count($_POST['primary']))
+      {
+        # Our array will hold the column name...
+        $keys = array();
+
+        foreach($_POST['primary'] as $key => $dummy)
+        {
+          $keys[] = $_POST['col'][$key];
+        }
+
+        # Add it now...
+        $create_tpl .= ",\r\n  PRIMARY KEY('". implode('\',\'', $keys). "')";
+      }
+
+      # Add the last );
+      $create_tpl .= "\r\n);";
+
+      # Parse it... and we got it!
+      $result = sql_query($create_tpl, $query_error);
+
+      # Make the query appear...
+      $_REQUEST['q'] = $create_tpl;
+
+      if(empty($query_error))
+        # No errors, yay!
+        $config['msg'] = 'Table '. htmlspecialchars($tbl_name, ENT_QUOTES). ' created successfully.';
+      else
+        $config['msg'] = '<p class="error">Error: '. $query_error. '</p>';
+    }
+  }
 }
 
 # And now... our switch, which handles a lot of things :P
@@ -536,6 +632,7 @@ function phpLiter_main()
 
   # Now for the main course! Nummy!
   $actions = array(
+    'create' => 'createSwitch',
     'edit_rows' => 'print_edit',
     'export' => 'exportSwitch',
     'help' => 'print_help',
@@ -671,7 +768,7 @@ function list_tables()
     echo '
     <table cellspacing="0px" cellpadding="0px">
       <tr>
-        <th><input name="select_all" type="checkbox" onClick="select_tables(this.form);"/></th><th>Table Name</th><th colspan="3">&nbsp;</th><th>Records</th><th>Type</th>
+        <th class="checkbox"><input name="select_all" type="checkbox" onClick="select_tables(this.form);"/></th><th class="left">Table Name</th><th colspan="3">&nbsp;</th><th>Rows</th><th>Type</th>
       </tr>';
 
       # To alter the backgrounds XD
@@ -1167,7 +1264,7 @@ function show_select()
   # So get our query...
   $query = $_REQUEST['q'];
 
-  $result = sql_query($query, $query_error);
+  $result = sql_query($query, $query_error, $time_taken);
 
   # Whether or not its a simple select...
   $is_join = is_join($query);
@@ -1177,6 +1274,9 @@ function show_select()
   {
     # Now show the results!
     echo '
+  <div id="info_center">
+    <p>Query executed in ', round($time_taken, 5), ' seconds. ', sqlite_num_rows($result), ' rows displayed.</p>
+  </div>
   <form action="', $_SERVER['PHP_SELF'], '" method="post">
     <table cellspacing="1px" cellpadding="0px" width="100%">
       <tr>';
@@ -1185,7 +1285,7 @@ function show_select()
     if(!$is_join)
     {
       echo '
-        <th width="5px">&nbsp;</th>';
+        <th class="checkbox" align="center"><input name="select_all" type="checkbox" onClick="select_rows(this.form);" /></th>';
 
       # Anyways... We might as well leech off this IF statement
       # What we need to do now is find any PRIMARY KEYs, which
@@ -1592,12 +1692,18 @@ function print_insert()
             $value = $_REQUEST['functionStr'][$colName][0]($_REQUEST['value'][$colName]);
         }
 
+        # Empty? Lets do it!!!
+        if(empty($value))
+          $value = 'NULL';
+        else
+          $value = '\''. $value. '\'';
+
         # Add the value to the array...
         $values[] = $value;
       }
 
       # Now complete the query.
-      $query = $query. '(\''. implode('\',\'', $values). '\');';
+      $query = $query. '('. implode(',', $values). ');';
 
       # It can now be ran through the database :D!
       $result = sql_query($query, $query_error);
@@ -1707,6 +1813,152 @@ function print_lockdown()
   template_footer();
 }
 
+# Our Create Table switch...
+function createSwitch()
+{
+  # Gotta get options! :P
+  if(!isset($_GET['table']))
+    print_createOptions();
+  else
+    print_createTable();
+}
+
+# So get the table name and the number of columns!
+function print_createOptions()
+{
+  global $config;
+
+  template_header('Create a table', false);
+
+  echo '
+  <div id="create_table">
+    <h1>Create a table</h1>
+    <p>First things first, we need a couple things from you.</p>
+    <form action="', $_SERVER['PHP_SELF'], '?act=create&table" method="post">
+      <table cellpadding="0px" cellspacing="1px" align="center">
+        <tr>
+          <td>Table name</td><td><input name="tbl_name" type="text" value="" /></td>
+        </tr>
+        <tr>
+          <td>Number of columns</td><td><input name="num_cols" type="text" value="" /></td>
+        </tr>
+        <tr align="center" class="center">
+          <td colspan="2" align="center" class="center"><input type="submit" value="Continue..." /></td>
+        </tr>
+      </table>
+    </form>
+  </div>';
+
+  template_footer();
+}
+
+# Now the more complicated thing :P Not really... XD
+function print_createTable()
+{
+  global $config;
+
+  # Lets get the table name...
+  $tbl_name = !empty($_POST['tbl_name']) ? $_POST['tbl_name'] : '';
+
+  # Name taken?
+  $result = sql_query('SELECT * FROM sqlite_master WHERE name = \''. $tbl_name. '\'');
+
+  if(empty($tbl_name) || sqlite_num_rows($result) > 0)
+    # Oh noes!
+    $error_msg = 'The table name you have entered is either invalid, empty or in use.';
+  elseif(empty($_POST['num_cols']) || (string)$_POST['num_cols'] != (string)(int)$_POST['num_cols'] || (int)$_POST['num_cols'] < 1)
+    $error_msg = 'The number of columns you have entered is invalid or to low.';
+
+  # Any error?
+  if(!empty($error_msg))
+  {
+    template_header('Create table error', false);
+
+    echo '
+  <div id="create_table">
+    <h1>Create table error</h1>
+    <p class="error center">', $error_msg, '</p>
+    <p class="center"><a href="', $_SERVER['PHP_SELF'], '?act=create">Go Back</a></p>
+  </div>';
+
+    template_footer();
+  }
+  else
+  {
+    template_header('Create a table', false);
+
+    # Adding more columns? Thats fine with me!
+    if(!empty($_POST['more_cols']) && (string)$_POST['more_cols'] == (string)(int)$_POST['more_cols'])
+    {
+      # Just make sure...
+      $tmp = $_POST['num_cols'];
+      $_POST['num_cols'] += (int)$_POST['more_cols'];
+
+      # Sure I could do it another way, but eh.
+      if($_POST['num_cols'] < 1)
+        $_POST['num_cols'] = $tmp;
+    }
+
+    echo '
+  <div id="create_table">
+    <h1>Create a table</h1>
+    <p>You are currently creating the table <strong>', htmlspecialchars($tbl_name, ENT_QUOTES), '</strong> with <strong>', (int)$_POST['num_cols'], ' columns</strong>.</p>
+
+    <form action="', $_SERVER['PHP_SELF'], '" method="post">
+      <table width="90%" align="center" cellpadding="0px" cellspacing="1px" style="margin-top: 5px; margin-bottom: 5px;">
+        <tr>
+          <th>Column Name</th><th>Data type</th><th>Length*</th><th>Null?</th><th>Default value**</th><th><abbr title="Primary Key">PK***</abbr></th>
+        </tr>';
+
+    # Now we need to show some stuff so you can make the table XD!
+    for($i = 0; $i < (int)$_POST['num_cols']; $i++)
+    {
+      echo '
+        <tr>
+          <td><input name="col[', $i, ']" type="text" value="', htmlspecialchars(!empty($_POST['col'][$i]) ? $_POST['col'][$i] : '', ENT_QUOTES), '" /></td><td>', buildDataTypeList($i, !empty($_POST['datatype'][$i]) ? $_POST['datatype'][$i] : ''), '</td><td align="center" class="center"><input name="length[', $i, ']" type="text" size="3" value="', !empty($_POST['length'][$i]) ? (int)$_POST['length'][$i] : '', '" /></td><td align="center" class="center"><input name="null[', $i, ']" type="checkbox" value="1" ', !empty($_POST['null'][$i]) ? 'checked="checked" ' : '', '/></td><td><input name="default[', $i, ']" type="text" value="', htmlspecialchars(!empty($_POST['default'][$i]) ? $_POST['default'][$i] : '', ENT_QUOTES), '" /></td><td align="center" class="center"><input name="primary[', $i, ']" type="checkbox" value="1" ', !empty($_POST['primary'][$i]) ? 'checked="checked" ' : '', '/></td>
+        </tr>';
+    }
+
+    echo '
+        <tr>
+          <td align="right" colspan="6"><input name="create_execute" type="submit" value="Create Table" /> Add <input name="more_cols" type="text" size="2" value="" /> more columns <input name="add_cols" type="submit" onClick="changeAction(this.form);" value="Go" /></td>
+        </tr>
+        <input name="num_cols" type="hidden" value="', (int)$_POST['num_cols'], '" />
+        <input name="tbl_name" type="hidden" value="', urlencode($_POST['tbl_name']), '" />
+      </table>
+    </form>
+    <p class="lil_msg">
+      * Not required or usable on all data types<br />
+      ** The default value will be escaped with <a href="http://www.php.net/sqlite_escape_string" target="_blank">sqlite_escape_string</a><br />
+      *** If you want a column to Auto Increment, select it as the ONLY Primary Key and a data type of INTEGER.
+    </p>
+  </div>';
+
+    template_footer();
+  }
+}
+
+# Builds a list of data types... to make it easy :P
+function buildDataTypeList($i = 0, $selected = '')
+{
+  # An array of valid ones...
+  $types = array('INTEGER', 'INT', 'SMALLINT', 'FLOAT', 'NUMERIC', 'TIMESTAMP', 'DATE', 'TEXT', 'BLOB', 'CLOB', 'VARCHAR', 'NVARCHAR');
+
+  $return = '<select name="datatype['. $i. ']">';
+
+  foreach($types as $type)
+  {
+    if(strtoupper($selected) == $type)
+      $return .= '<option value="'. $type. '" selected="yes">'. $type. '</option>';
+    else
+      $return .= '<option value="'. $type. '">'. $type. '</option>';
+  }
+
+  $return .= '</select>';
+
+  return $return;
+}
+
 # Our template functions... This one is quite obviously our header XD
 function template_header($title = '', $show_q = true)
 {
@@ -1747,6 +1999,25 @@ function template_header($title = '', $show_q = true)
       }
     }
   }
+  function select_rows(input)
+  {
+    first = 0;
+    for(i = 0; i < input.length; i++) 
+    {
+      if(input[i].type == "checkbox")
+      {
+        if(first == 0)
+          first = i;
+        else if(input[i].name.substring(0, 1) == "s")
+        {
+          if(input[i].checked)
+            input[i].checked = \'\';
+          else
+            input[i].checked = \'checked\';
+        }
+      }
+    }
+  }
   function clear_input(input_id)
   {
     handle = document.getElementById(input_id);
@@ -1769,6 +2040,10 @@ function template_header($title = '', $show_q = true)
       else
         return false;
     }
+  }
+  function changeAction(handle)
+  {
+    handle.action += \'?act=create&table\';
   }
   </script>
   <style type="text/css">
@@ -1914,6 +2189,16 @@ function template_header($title = '', $show_q = true)
       text-align: center;
       border: 1px solid #D5D1B8;
     }
+    #create_table
+    {
+      width: 650px;
+      padding: 10px;
+      margin-top: 20px;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid #D5D1B8;
+    }
     #powered_by
     {
       text-align: right;
@@ -1944,6 +2229,10 @@ function template_header($title = '', $show_q = true)
       padding: 1px 8px 1px 8px;
       color: #ffffff;
     }
+    th.checkbox
+    {
+      padding: 0px;
+    }
     tr.tr_1
     {
       background: #FFFFFF;
@@ -1956,10 +2245,18 @@ function template_header($title = '', $show_q = true)
     {
       padding: 2px 4px 2px 4px;
     }
+    .left
+    {
+      text-align: left;
+    }
     .center
     {
       text-align: center;
-     }
+    }
+    .right
+    {
+      text-align: right;
+    }
     .insert
     {
       text-align: center;
@@ -1977,7 +2274,7 @@ function template_header($title = '', $show_q = true)
     <div id="left">
       <table>
         <tr>
-          <td><p><a href="http://phpliteradmin.googlecode.com/" class="bold" target="_blank">phpLiterAdmin v', $config['version'], '</a></p></td>', db_list(), '
+          <td><p><a href="http://phpliteradmin.googlecode.com/" class="bold" target="_blank" title="phpLiterAdmin, the better SQLite Manager">phpLiterAdmin v', $config['version'], '</a></p></td>', db_list(), '
         </tr>
       </table>
     </div>
@@ -1985,7 +2282,7 @@ function template_header($title = '', $show_q = true)
 
     # No menu for you if you aren't logged in :P
     if($config['is_logged'])
-      echo '<p><a href="', $_SERVER['PHP_SELF'], '">Show Tables</a> | <a href="', $_SERVER['PHP_SELF'], '?act=export">Export Database</a> | <a href="', $_SERVER['PHP_SELF'], '?act=import">Import Database</a> | <a href="', $_SERVER['PHP_SELF'], '?act=server_info">Server Info</a> | <a href="', $_SERVER['PHP_SELF'], '?act=logout">Logout</a></p>';
+      echo '<p><a href="', $_SERVER['PHP_SELF'], '">Show Tables</a> | <a href="', $_SERVER['PHP_SELF'], '?act=create" title="Create a table">Create a table</a> | <a href="', $_SERVER['PHP_SELF'], '?act=export" title="Export database">Export</a> | <a href="', $_SERVER['PHP_SELF'], '?act=import" title="Import database">Import</a> | <a href="', $_SERVER['PHP_SELF'], '?act=server_info" title="Server information">Server Info</a> | <a href="', $_SERVER['PHP_SELF'], '?act=logout" title="Logout">Logout</a></p>';
 
   echo '    
     </div>
@@ -1998,14 +2295,14 @@ function template_header($title = '', $show_q = true)
     echo '
   <br /><br /><br />
   <div align="center">
-    <p>SQLite Queries to run through the Database: (Queries separated by semicolons) [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=query\');">?</a>]</p>
+    <p>SQLite queries to run through the database: (Queries separated by semicolons) [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=query\');">?</a>]</p>
       <form action="', $_SERVER['PHP_SELF'], '" method="post">
         <textarea id="q_input" name="q" rows="10" cols="70">', htmlspecialchars($_REQUEST['q'], ENT_QUOTES), '</textarea>
         <table>
           <tr>
             <td><input type="button" onClick="clear_input(\'q_input\');" value="Clear"/></td>
             <td><input name="go" type="submit" value="Process Queries!"/></td>
-            <td><input name="fulltext" type="checkbox" value="1" ', !empty($_REQUEST['fulltext']) ? 'checked="checked" ' : '', '/> Show Full texts [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=fulltexts\');">?</a>]</td>
+            <td><input name="fulltext" id="fulltext" type="checkbox" value="1" ', !empty($_REQUEST['fulltext']) ? 'checked="checked" ' : '', '/> <label for="fulltext">Show Full texts</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=fulltexts\');">?</a>]</td>
           </tr>
           <input name="act" type="hidden" value="query"/>
         </table>
@@ -2022,7 +2319,7 @@ function template_footer()
   echo '
   <br />
   <div id="powered_by">
-    <p>Powered by <a href="http://phpliteradmin.googlecode.com/" target="_blank">phpLiterAdmin</a> v', $config['version'], ' by <a href="http://nosql.110mb.com/" target="_blank">NoSQL</a> | It took ', round(microtime(true) - $start_time, 5), ' seconds to make this page</p>
+    <p>Powered by <a href="http://phpliteradmin.googlecode.com/" target="_blank">phpLiterAdmin</a> v', $config['version'], ' by <a href="http://nosql.110mb.com/" target="_blank">NoSQL</a> | Page generated in ', round(microtime(true) - $start_time, 5), ' seconds.</p>
   </div>
   </div>
 </body>
