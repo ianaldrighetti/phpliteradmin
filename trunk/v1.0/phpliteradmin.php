@@ -53,7 +53,7 @@ $config['lock_down'] = 0;
 # The SQLite databases you wish to manage... be sure to include
 # the correct path to them. Please note that if the database doesn't
 # exist, it is automatically created, due to how sqlite_open works.
-$config['db'] = array('./db.db', 'settings.db');
+$config['db'] = array('./db2.db', 'settings.db');
 
 # Cookie name for if someone wants to be remembered... Should
 # be changed if you have multiple phpLiterAdmin's under the same
@@ -646,6 +646,13 @@ function list_tables()
     <div id="con_error">
       <p>An error occurred while attempting to read from the SQLite Master table.<br />Error: ', $query_error, '</p>
     </div>';
+  elseif($config['db_not_allowed'])
+  {
+    echo '
+    <div id="con_error">
+      <p>Sorry, but the database you are attempting to select isn\'t allowed.</p>
+    </div>';
+  }
   else
   {
     # Nothing went wrong... just like it should :P
@@ -700,13 +707,13 @@ function table_options()
           <input name="vacuum" type="submit" title="Execute VACUUM (Like Optimize)" value="Vacuum"/>
         </td>
         <td>
-          <input onClick="return confirm(\'Are you sure you want to empty the tables? It cannot be undone!\');" name="empty" type="submit" title="Empty the selected Tables" value="Empty"/>
+          <input onClick="return confirm(\'Are you sure you want to empty the tables? It cannot be undone!\');" name="empty" type="submit" title="Empty the selected tables" value="Empty"/>
         </td>
         <td>
-          <input onClick="return confirm(\'Are you sure you want to drop the selected tables? All Data will be lost forever!\');" name="drop_tables" type="submit" title="Drop the selected tables" value="Drop"/>
+          <input onClick="return confirm(\'Are you sure you want to drop the selected tables? All data will be lost forever!\');" name="drop_tables" type="submit" title="Drop the selected tables" value="Drop"/>
         </td>
         <td>
-          <input name="show_indexes" type="submit" value="', (isset($_SESSION['show_indexes']) && $_SESSION['show_indexes']) ? 'Don\'t show Indexes' : 'Show Indexes', '"/>
+          <input name="show_indexes" type="submit" value="', (isset($_SESSION['show_indexes']) && $_SESSION['show_indexes']) ? 'Don\'t show indexes' : 'Show indexes', '"/>
         </td>
       </tr>
     </table>';
@@ -980,7 +987,7 @@ function print_export()
             <td colspan="2">Export as:</td>
           </tr>
           <tr>
-            <td><input name="type" value="sql" id="sql" type="radio" checked="checked"/> <label for="sql">SQL</label></td><td><input name="type" id="gz" value="gz" type="radio"/> <label for="gz">GZipped</label></td>
+            <td><input name="type" value="sql" id="sql" type="radio" checked="checked" /> <label for="sql">SQL</label></td><td><input name="type" id="gz" value="gz" type="radio" ', !function_exists('ob_gzhandler') ? 'disabled="disabled" ' : '', '/> <label for="gz">GZipped</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=zlib\');">?</a>]</td>
           </tr>
           <tr align="center">
             <td colspan="2"><input type="button" onClick="window.location=\'', $_SERVER['PHP_SELF'], '\'" value="Cancel"/>&nbsp;&nbsp;&nbsp;<input name="export" type="submit" value="Download"/></td>
@@ -1029,7 +1036,7 @@ function do_export()
   $do_gz = false;
 
   # Okay, we might change it if you want it to be GZipped...
-  if($_POST['type'] == 'gz')
+  if($_POST['type'] == 'gz' && function_exists('ob_gzhandler'))
   {
     $mime_type = 'application/x-gzip';
     $ext = '.sql.gz';
@@ -1140,7 +1147,7 @@ function print_import()
           <td>Database File:</td><td><input name="sqlite_file" type="file"/></td>
         </tr>    
         <tr>
-          <td colspan="2" style="text-align: center;">.gz and .sql files only</td>
+          <td colspan="2" style="text-align: center;">', function_exists('ob_gzhandler') ? '.gz and ' : '', '.sql files only</td>
         </tr>    
         <tr align="center">
           <td colspan="2"><input type="button" onClick="window.location=\'', $_SERVER['PHP_SELF'], '\'" value="Cancel"/>&nbsp;&nbsp;&nbsp;<input onClick="return confirm(\'Are you sure you want to import the backup?\');" name="import" type="submit" value="Upload &amp; Import"/>
@@ -1361,19 +1368,19 @@ function db_list()
       }
 
       echo '
-      <td style="color: #FFFFFF;">Database to manage:</td>
-      <form action="', $_SERVER['PHP_SELF'], '" method="post">
-        <td><select name="database">';
+          <td style="color: #FFFFFF;">Database:</td>
+          <form action="', $_SERVER['PHP_SELF'], '" method="post">
+            <td><select name="database">';
 
         foreach($db_list as $db)
           echo '
-              <option value="', $db[1], '"', !empty($_SESSION['db']) && $_SESSION['db'] == $db[1] ? ' selected="yes"' : '', '>', $db[0], '</option>';
+                  <option value="', $db[1], '"', !empty($_SESSION['db']) && $_SESSION['db'] == $db[1] ? ' selected="yes"' : '', '>', $db[0], '</option>';
 
       echo '
-            </select></td>
-        <td><input name="go" type="submit" value="Edit" /></td>
-        <input name="act" type="hidden" value="db" />
-      </form>';
+                </select></td>
+            <td><input name="go" type="submit" value="Edit" /></td>
+            <input name="act" type="hidden" value="db" />
+          </form>';
     }
   }
 }
@@ -1402,7 +1409,7 @@ function print_struc()
         'id' => $row['cid'],
         'name' => $row['name'],
         'type' => strtoupper($row['type']),
-        'null' => $row['notnull'] == 0 ? false : true,
+        'null' => $row['notnull'] == 0 ? true : false,
         'default' => htmlspecialchars($row['dflt_value'], ENT_QUOTES),
         'keys' => $row['pk'] ? array('<abbr title="Primary Key">PRI</abbr>') : array(),
       );
@@ -1670,6 +1677,15 @@ function print_server_info()
       </tr>
       <tr align="center">
         <td class="var">Last Error</td><td>', sqlite_error_string(sqlite_last_error($config['con'])), '</td>
+      </tr>
+      <tr align="center">
+        <td class="var"><abbr title="Max Execution Time">Max Exec Time</abbr></td><td>', (int)@ini_get('max_execution_time'), ' seconds</td>
+      </tr>
+      <tr align="center">
+        <td class="var">Safe Mode</td><td>', @ini_get('safe_mode') ? 'On' : 'Off', '</td>
+      </tr>
+      <tr align="center">
+        <td class="var">Zlib Support [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=zlib\');">?</a>]</td><td>', function_exists('ob_gzhandler') ? 'Enabled' : 'Disabled', '</td>
       </tr>
     </table>
   </div>';
@@ -1961,8 +1977,7 @@ function template_header($title = '', $show_q = true)
     <div id="left">
       <table>
         <tr>
-          <td><p><a href="http://nosql.110mb.com/" class="bold">phpLiterAdmin v', $config['version'], '</a></p></td>
-          <td width="10px"></td>', db_list(), '
+          <td><p><a href="http://phpliteradmin.googlecode.com/" class="bold" target="_blank">phpLiterAdmin v', $config['version'], '</a></p></td>', db_list(), '
         </tr>
       </table>
     </div>
@@ -1983,13 +1998,14 @@ function template_header($title = '', $show_q = true)
     echo '
   <br /><br /><br />
   <div align="center">
-    <p>SQLite Queries to run through the Database: (Queries Separated by semicolons) [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=query\');">?</a>]</p>
+    <p>SQLite Queries to run through the Database: (Queries separated by semicolons) [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=query\');">?</a>]</p>
       <form action="', $_SERVER['PHP_SELF'], '" method="post">
         <textarea id="q_input" name="q" rows="10" cols="70">', htmlspecialchars($_REQUEST['q'], ENT_QUOTES), '</textarea>
         <table>
           <tr>
             <td><input type="button" onClick="clear_input(\'q_input\');" value="Clear"/></td>
             <td><input name="go" type="submit" value="Process Queries!"/></td>
+            <td><input name="fulltext" type="checkbox" value="1" ', !empty($_REQUEST['fulltext']) ? 'checked="checked" ' : '', '/> Show Full texts [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=fulltexts\');">?</a>]</td>
           </tr>
           <input name="act" type="hidden" value="query"/>
         </table>
@@ -2006,7 +2022,7 @@ function template_footer()
   echo '
   <br />
   <div id="powered_by">
-    <p>Powered by phpLiterAdmin v', $config['version'], ' by <a href="http://nosql.110mb.com/">NoSQL</a> | It took ', round(microtime(true) - $start_time, 5), ' seconds to make this page</p>
+    <p>Powered by <a href="http://phpliteradmin.googlecode.com/" target="_blank">phpLiterAdmin</a> v', $config['version'], ' by <a href="http://nosql.110mb.com/" target="_blank">NoSQL</a> | It took ', round(microtime(true) - $start_time, 5), ' seconds to make this page</p>
   </div>
   </div>
 </body>
@@ -2023,7 +2039,7 @@ function print_help()
   {
     echo '
     <h1>Debug Mode</h1>
-    <p>Debug Mode may help when you go to import your SQLite Database, it will be less error prone. I recommend you download an backup with and without it.</p>';
+    <p>Debug Mode isn\'t exactly "debugging", what it does is sanitize the data retrieved from the database with <a href="http://www.php.net/sqlite_escape_string" target="_blank">sqlite_escape_string</a>. It is recommended to have this option selected.</p>';
   }
   elseif($faq == 'drop_table')
   {
@@ -2054,6 +2070,18 @@ function print_help()
     echo '
     <h1>Query Box</h1>
     <p>In this box you can run queries against your SQLite database, you can do multiple Queries be separating them by semicolons.<br /><br /><a href="http://nosql.110mb.com/page.php?p=2" target="_blank">Need a Tutorial?</a></p>';
+  }
+  elseif($faq == 'fulltexts')
+  {
+    echo '
+    <h1>Show Full texts</h1>
+    <p>Sometimes fields have a lot of information in them... In order to make the page look cleaner, you can leave this option unchecked and not all of the value is displayed. It is chopped off so it won\'t take up so much room. However, if you wish to view it all simply check this box.</p>';
+  }
+  elseif($faq == 'zlib')
+  {
+    echo '
+    <h1><a href="http://www.php.net/zlib" target="_blank">Zlib</a> Support</h1>
+    <p>Zlib is required by phpLiterAdmin for gzipping backups and extracting them from gzips. While phpLiterAdmin will work just fine without it, its always a good idea to have it enabled ;)<br /><br />Zlib appears to be <strong>', function_exists('ob_gzhandler') ? 'enabled' : 'disabled', '</strong>.</p>';
   }
 
   faq_footer();
