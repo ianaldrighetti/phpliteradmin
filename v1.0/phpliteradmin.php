@@ -123,7 +123,7 @@ if(!empty($_SESSION['username']) && !empty($_SESSION['password']) && !empty($con
   $config['is_logged'] = true;
 
 # Don't edit this please :)
-$config['version'] = '1.0 Beta';
+$config['version'] = '1.0 Beta 2';
 
 # Logging out?
 if($config['is_logged'] && !empty($_GET['act']) && $_GET['act'] == 'logout')
@@ -600,10 +600,47 @@ if($config['is_logged'])
 
       if(empty($query_error))
         # No errors, yay!
-        $config['msg'] = 'Table '. htmlspecialchars($tbl_name, ENT_QUOTES). ' created successfully.';
+        $config['msg'] = '<p>Table '. htmlspecialchars($tbl_name, ENT_QUOTES). ' created successfully.</p>';
       else
         $config['msg'] = '<p class="error">Error: '. $query_error. '</p>';
     }
+  }
+  # Creating an index..?
+  elseif(!empty($_POST['create_index']))
+  {
+    # Table name...
+    $tbl_name = !empty($_POST['tbl_name']) ? $_POST['tbl_name'] : '';
+
+    # Columns...
+    if(!empty($_POST['col']) && count($_POST['col']))
+    {
+      $cols = array();
+      foreach($_POST['col'] as $colName => $dummy)
+        $cols[] = $colName;
+
+      # Ok. Get ready...
+      $query = 'CREATE '. (!empty($_POST['index']) && $_POST['index'] == 'unique' ? 'UNIQUE ' : ''). 'INDEX ';
+
+      # Create a name... The table name, column names and type :)
+      $index_name = $tbl_name. '_'. implode('_', $cols). '_'. (!empty($_POST['index']) && $_POST['index'] == 'unique' ? 'unique_index' : 'index');
+
+      # Add it... and the rest of the stuff.
+      $query .= '\''. $index_name. '\' ON \''. $tbl_name. '\' (\''. implode('\',\'', $cols). '\');';
+
+      # Okay... now query...
+      $result = sql_query($query, $query_error);
+
+      # Make it appear in the query box.
+      $_REQUEST['q'] = $query;
+
+      # Any errors?
+      if(empty($query_error))
+        $config['msg'] = '<p>The index '. $index_name. ' was successfully created.</p>';
+      else
+        $config['msg'] = '<p class="error">Error: '. $query_error. '</p>';
+    }
+    else
+      $config['msg'] = '<p class="error">No columns for the index selected.</p>';
   }
 }
 
@@ -1559,26 +1596,32 @@ function print_struc()
 
     # So output all the information :)
     echo '
-    <table width="100%" cellspacing="1px" cellpadding="0px">
-      <tr>
-        <th colspan="5">Table Structure for ', $tbl_name, '</th>
-      </tr>
-      <tr>
-        <th>Column Name</th><th>Data type</th><th>Null?</th><th>Default Value</th><th>Keys</th>
-      </tr>';
+    <form action="', $_SERVER['PHP_SELF'], '" method="post">
+      <table width="100%" cellspacing="1px" cellpadding="0px">
+        <tr>
+          <th colspan="6">Table Structure for ', $tbl_name, '</th>
+        </tr>
+        <tr>
+          <th class="struc">&nbsp;</th><th>Column Name</th><th>Data type</th><th>Null?</th><th>Default Value</th><th>Keys</th>
+        </tr>';
 
     $i = 0;
     foreach($columns as $column)
     {
       echo '
-      <tr class="tr_', $i == 0 ? '1' : '2', '">
-        <td class="center">', $column['name'], '</td><td class="center">', $column['type'], '</td><td class="center">', $column['null'] ? 'Yes' : 'No', '</td><td class="center">', $column['default'], '</td><td class="center">', implode(' ', $column['keys']), '</td>
-      </tr>';
+        <tr class="tr_', $i == 0 ? '1' : '2', '">
+          <td class="struc"><input name="col[', $column['name'], ']" type="checkbox" value="1" title="Add index to ', $column['name'], '" /></td><td class="center">', $column['name'], '</td><td class="center">', $column['type'], '</td><td class="center">', $column['null'] ? 'Yes' : 'No', '</td><td class="center">', $column['default'], '</td><td class="center">', implode(' ', $column['keys']), '</td>
+        </tr>';
       $i = $i == 0 ? 1 : 0;
     }
 
     echo '
-    </table>
+        <tr>
+          <td height="14px" colspan="6" align="left" valign="middle" class="left">Create a <select name="index"><option value="index">regular</option><option value="unique">unique</option></select> index. <input name="create_index" type="submit" value="Go" /></td>
+        </tr>
+      </table>
+      <input name="tbl_name" type="hidden" value="', urlencode($tbl_name), '" />
+    </form>
     <p class="center" style="margin-top: 5px;">Options: [<a href="', $_SERVER['PHP_SELF'], '?act=sct&tbl=', $tbl_name, '" title="Show create table for ', $tbl_name, '">SCT</a>] [<a href="', $_SERVER['PHP_SELF'], '?act=query&q=SELECT+*+FROM+', $tbl_name, '" title="Select all from ', $tbl_name, '">SELECT</a>] [<a href="', $_SERVER['PHP_SELF'], '?act=insert&tbl=', $tbl_name, '" title="Insert a row into ', $tbl_name, '">INSERT</a>]</p>';
   }
   else
@@ -2266,6 +2309,11 @@ function template_header($title = '', $show_q = true)
     {
       font-size: 10px;
       text-align: center;
+    }
+    .struc
+    {
+      padding: 0px;
+      width: 20px;
     }
   </style>
 </head>
