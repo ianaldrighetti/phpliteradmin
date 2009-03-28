@@ -127,7 +127,7 @@ if(!empty($_SESSION['username']) && !empty($_SESSION['password']) && !empty($con
   $config['is_logged'] = true;
 
 # Don't edit this please :)
-$config['version'] = '1.0 Beta 2';
+$config['version'] = '1.0 Beta 3';
 
 # Logging out?
 if($config['is_logged'] && !empty($_GET['act']) && $_GET['act'] == 'logout')
