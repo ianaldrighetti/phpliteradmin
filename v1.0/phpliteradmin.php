@@ -65,6 +65,10 @@ $config['cookie_name'] = 'phpLiterAdmin432';
 # checkout www.php.net/sqlite_popen if you set this to true
 $config['persist'] = true;
 
+# Allow people (Who are logged in!) to view the PHP Info...
+# Which shows everything in phpinfo(); (1 = yes, 0 = no)
+$config['phpinfo'] = 1;
+
 # --------------------------------------------------
 # You can edit the below, you know, since its released
 # under the GNU GPL v2 License, but I wouldn't recommend
@@ -190,7 +194,7 @@ if($config['is_logged'])
     sql_query('VACUUM', $query_error, $time_taken);
 
     if(empty($query_error))
-      $config['msg'] = '<p>VACUUM done successfully! ('. round($time_taken, 5). ' seconds)</p>';
+      $config['msg'] = '<p>VACUUM done successfully! ('. round($time_taken, 5). ' seconds).</p>';
     else
       $config['msg'] = '<p class="error">An error occurred while doing VACUUM, Error: '. $query_error. '</p>';
   }
@@ -228,7 +232,7 @@ if($config['is_logged'])
     $time_taken = round(microtime(true) - $start_time, 5);
 
     # Lets see what kind of query it is ;)
-    if(preg_match('~^DROP|DELETE|INSERT|REPLACE|UPDATE|CREATE|REINDEX~i', trim($query)))
+    if(preg_match('~^(?:DROP|DELETE|INSERT|REPLACE|UPDATE|CREATE|REINDEX)~i', trim($query)))
     {
       # No errors! Good!
       if(empty($query_error))
@@ -237,7 +241,7 @@ if($config['is_logged'])
         # Errors? D:!
         $config['msg'] = '<p class="error">Query Error: '. $query_error. '</p>';
     }
-    elseif(preg_match('~^SELECT|PRAGMA|EXPLAIN~i', trim($query)))
+    elseif(preg_match('~^(?:SELECT|PRAGMA|EXPLAIN)~i', trim($query)))
     {
       if(empty($query_error))
       {
@@ -675,10 +679,16 @@ function phpLiter_main()
     'help' => 'print_help',
     'import' => 'print_import',
     'insert' => 'print_insert',
+    'phpinfo' => 'phpinfo',
     'server_info' => 'print_server_info',
     'sct' => 'print_sct',
     'struc' => 'print_struc',
   );
+
+  # PHP Info allowed?
+  if(!$config['phpinfo'])
+    # Nope, so remove it ;)
+    unset($actions['phpinfo']);
 
   # Any action..?
   if(!empty($_REQUEST['act']) && !empty($actions[$_REQUEST['act']]))
@@ -871,10 +881,15 @@ function num_rows($tbl_name, $type)
 }
 
 # File size formatting function.
-function format_size($file)
+function format_size($file, $not_file = false)
 {
   # I didn't make this! Credit www.php.net/manual/en/function.filesize.php#84034 
-  $size = @filesize($file);
+  # File?
+  if(!$not_file)
+    $size = @filesize($file);
+  else
+    # Nope...
+    $size = (int)$file;
   $sizes = array('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
   $total = count($sizes);
 
@@ -1369,7 +1384,7 @@ function show_select()
       # Now if it isn't a JOIN/EXPLAIN/etc. we can show a checkbox
       # Next to the name :)
       if(!$is_join)
-        echo '<th><input id="id_', $i, '" name="unique_id[', $i, ']" type="checkbox" title="Choose ', $colName, ' as a unique identifier" value="1" ', in_array($colName, $primary) ? 'checked="checked" ' : '', '/> <label for="id_', $i, '" title="Choose ', $colName, ' as a unique identifier">', $colName, '</label></th>';
+        echo '<th><input id="id_', $i, '" name="unique_id[', $i, ']" type="checkbox" title="Choose ', $colName, ' as a unique identifier" value="1" ', @in_array($colName, $primary) ? 'checked="checked" ' : '', '/> <label for="id_', $i, '" title="Choose ', $colName, ' as a unique identifier">', $colName, '</label></th>';
       else
         # Just show the name...
         echo '<th>', $colName, '</th>';
@@ -1414,7 +1429,7 @@ function show_select()
     if(!$is_join)
       echo '
       <tr>
-        <td colspan="', $numCols, '"><input name="edit_rows" onClick="return select_form(this.form, \'edit\');" type="submit" value="Edit selected"/> <input name="delete_rows" onClick="return select_form(this.form, \'delete\');" type="submit" value="Delete selected"/></td>
+        <td colspan="', $numCols + 1, '"><input name="edit_rows" onClick="return select_form(this.form, \'edit\');" type="submit" value="Edit selected"/> <input name="delete_rows" onClick="return select_form(this.form, \'delete\');" type="submit" value="Delete selected"/></td>
       </tr>';
 
     echo '
@@ -1434,6 +1449,11 @@ function show_select()
 # Probably not very good, but =P!
 function is_join($query)
 {
+  # But wait, filter something out!
+  if(stripos($query, 'FROM') === false)
+    # It might be like a SELECT 'hi' ;) you can't edit that!
+    return true;
+
   # We won't need to do this with a PRAGMA or EXPLAIN
   if(!preg_match('~^PRAGMA|EXPLAIN~i', trim($query)))
     if(preg_match('~(?:LEFT (OUTER)?|RIGHT ) JOIN~is', trim($query)))
@@ -1818,7 +1838,7 @@ function print_server_info()
 
   echo '
   <div id="server_info">
-    <h3>Server Info</h3>
+    <h1>Server Info</h1>
     <table align="center">
       <tr align="center">
         <td class="var">SQLite Version</td><td>', sqlite_libversion(), '</td>
@@ -1846,7 +1866,16 @@ function print_server_info()
       </tr>
       <tr align="center">
         <td class="var">Zlib Support [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=zlib\');">?</a>]</td><td>', function_exists('ob_gzhandler') ? 'Enabled' : 'Disabled', '</td>
-      </tr>
+      </tr>';
+
+      # PHP Info? Perhaps...
+      if($config['phpinfo'])
+        echo '
+      <tr align="center">
+        <td class="var center" colspan="2"><a href="', $_SERVER['PHP_SELF'], '?act=phpinfo" target="_blank">View lots of PHP Info.</a></td>
+      </tr>';
+
+  echo '
     </table>
   </div>';
 
@@ -2246,6 +2275,16 @@ function template_header($title = '', $show_q = true)
     #create_table
     {
       width: 650px;
+      padding: 10px;
+      margin-top: 20px;
+      margin-right: auto;
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid #D5D1B8;
+    }
+    #pragma
+    {
+      width: 500px;
       padding: 10px;
       margin-top: 20px;
       margin-right: auto;
