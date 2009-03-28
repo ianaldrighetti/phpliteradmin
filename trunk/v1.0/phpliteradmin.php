@@ -516,7 +516,7 @@ if($config['is_logged'])
       elseif($tbl_name === false)
         $config['msg'] = '<p class="error">Could not extract the table from the query.</p>';
       else
-        $config['msg'] = '<p class="error">No unique identifier or rows selected. <a href="'. $_SERVER['PHP_SELF']. '?act=query&q='. urlencode($query). '">Go back</a>.</p>';
+        $config['msg'] = '<p class="error">No unique identifier or rows selected. <a href="'. $_SERVER['PHP_SELF']. '?act=query&amp;q='. urlencode($query). '">Go back</a>.</p>';
     }
     else
       # What did I say?!
@@ -815,7 +815,7 @@ function list_tables()
     echo '
     <table cellspacing="0px" cellpadding="0px">
       <tr>
-        <th class="checkbox"><input name="select_all" type="checkbox" onClick="select_tables(this.form);"/></th><th class="left">Table Name</th><th colspan="3">&nbsp;</th><th>Rows</th><th>Type</th>
+        <th class="checkbox"><input name="select_all" accesskey="s" type="checkbox" onClick="select_tables(this.form);" title="Invert all (Alt + S)" /></th><th class="left">Table Name</th><th colspan="3">&nbsp;</th><th>Rows</th><th>Type</th>
       </tr>';
 
       # To alter the backgrounds XD
@@ -824,7 +824,7 @@ function list_tables()
       {
         echo '
       <tr class="', $i == 0 ? 'tr_1' : 'tr_2', '">
-        <td><input name="tbl[]" type="checkbox" value="', $tbl['name'], '"/></td><td><a href="', $_SERVER['PHP_SELF'], '?act=query&q=SELECT+*+FROM+', $tbl['tbl_name'], '">', $tbl['name'], '</a></td><td>[<a href="', $_SERVER['PHP_SELF'], '?act=struc&tbl=', $tbl['tbl_name'], '" title="Table Structure for ', $tbl['tbl_name'], '">Structure</a>]</td><td>[<a href="', $_SERVER['PHP_SELF'], '?act=sct&tbl=', $tbl['name'], '" title="Show Create Table for ', $tbl['name'], '">SCT</a>]</td><td class="center">[<a href="', $_SERVER['PHP_SELF'], '?act=insert&tbl=', $tbl['tbl_name'], '" title="Insert a row into ', $tbl['tbl_name'], '">Insert</a>]<td class="center">', num_rows($tbl['name'], $tbl['type']), '</td><td class="center">', $tbl['type'], '</td>
+        <td><input name="tbl[]" type="checkbox" value="', $tbl['name'], '"/></td><td><a href="', $_SERVER['PHP_SELF'], '?act=query&amp;q=SELECT+*+FROM+', $tbl['tbl_name'], '">', $tbl['name'], '</a></td><td>[<a href="', $_SERVER['PHP_SELF'], '?act=struc&amp;tbl=', $tbl['tbl_name'], '" title="Table Structure for ', $tbl['tbl_name'], '">Structure</a>]</td><td>[<a href="', $_SERVER['PHP_SELF'], '?act=sct&amp;tbl=', $tbl['name'], '" title="Show Create Table for ', $tbl['name'], '">SCT</a>]</td><td class="center">[<a href="', $_SERVER['PHP_SELF'], '?act=insert&amp;tbl=', $tbl['tbl_name'], '" title="Insert a row into ', $tbl['tbl_name'], '">Insert</a>]<td class="center">', num_rows($tbl['name'], $tbl['type']), '</td><td class="center">', $tbl['type'], '</td>
       </tr>';
 
         # Make 0 be 1, and 1 be 0 :)
@@ -848,7 +848,7 @@ function table_options()
     <table>
       <tr>
         <td>
-          <input name="vacuum" type="submit" title="Execute VACUUM (Like Optimize)" value="Vacuum"/>
+          <input name="vacuum" accesskey="v" type="submit" title="Optimize the database (Alt + V)" value="Vacuum" />
         </td>
         <td>
           <input onClick="return confirm(\'Are you sure you want to empty the tables? It cannot be undone!\');" name="empty" type="submit" title="Empty the selected tables" value="Empty"/>
@@ -857,7 +857,7 @@ function table_options()
           <input onClick="return confirm(\'Are you sure you want to drop the selected tables? All data will be lost forever!\');" name="drop_tables" type="submit" title="Drop the selected tables" value="Drop"/>
         </td>
         <td>
-          <input name="show_indexes" type="submit" value="', (isset($_SESSION['show_indexes']) && $_SESSION['show_indexes']) ? 'Don\'t show indexes' : 'Show indexes', '"/>
+          <input name="show_indexes" accesskey="i" type="submit" title="', (isset($_SESSION['show_indexes']) && $_SESSION['show_indexes'] ? 'Don\'t show indexes' : 'Show indexes'), ' (Alt + I)" value="', (isset($_SESSION['show_indexes']) && $_SESSION['show_indexes']) ? 'Don\'t show indexes' : 'Show indexes', '"/>
         </td>
       </tr>
     </table>';
@@ -926,13 +926,13 @@ function print_edit()
   elseif(empty($_POST['unique_id']) || !count($_POST['unique_id']))
   {
     $title = 'Edit Rows Error!';
-    $edit_error = 'No unique identifiers were selected. <a href="'. $_SERVER['PHP_SELF']. '?act=query&q='. urlencode($query). '">Go back and select some</a>.';
+    $edit_error = 'No unique identifiers were selected. <a href="'. $_SERVER['PHP_SELF']. '?act=query&amp;q='. urlencode($query). '">Go back and select some</a>.';
   }
   # Any rows selected?
   elseif(empty($_POST['select']) || !count($_POST['select']))
   {
     $title = 'Edit Rows Error!';
-    $edit_error = 'No rows selected. <a href="'. $_SERVER['PHP_SELF']. '?act=query&q='. urlencode($query). '">Go back and select some</a>.';
+    $edit_error = 'No rows selected. <a href="'. $_SERVER['PHP_SELF']. '?act=query&amp;q='. urlencode($query). '">Go back and select some</a>.';
   }
 
   template_header(!empty($title) ? $title : 'Edit Rows', false);
@@ -1115,28 +1115,28 @@ function print_export()
   echo '
   <div id="export">
     <h1>Export Database</h1>
-      <form action="', $_SERVER['PHP_SELF'], '?act=export&export" method="post">
+      <form action="', $_SERVER['PHP_SELF'], '?act=export&amp;export" method="post">
         <table align="center">
           <tr>
-            <td><label for="struc">Export with Structure</label> [<a href="javascript:void(0);" onClick="return faq(\'',$_SERVER['PHP_SELF'], '?act=help&faq=export_struc\');">?</a>]</td><td><input id="struc" name="struc" id="struc" type="checkbox" checked="checked" value="1"/></td>
+            <td><label for="struc">Export with Structure</label> [<a href="javascript:void(0);" onClick="return faq(\'',$_SERVER['PHP_SELF'], '?act=help&amp;faq=export_struc\');">?</a>]</td><td><input id="struc" name="struc" id="struc" type="checkbox" checked="checked" value="1"/></td>
           </tr>
           <tr>
-            <td><label for="data">Export with Data</label> [<a href="javascript:void(0);" onClick="return faq(\'',$_SERVER['PHP_SELF'], '?act=help&faq=export_data\');">?</a>]</td><td><input id="data" name="data" id="data" type="checkbox" checked="checked" value="1"/></td>
+            <td><label for="data">Export with Data</label> [<a href="javascript:void(0);" onClick="return faq(\'',$_SERVER['PHP_SELF'], '?act=help&amp;faq=export_data\');">?</a>]</td><td><input id="data" name="data" id="data" type="checkbox" checked="checked" value="1"/></td>
           </tr>
           <tr>
-            <td><label for="drop">Add DROP TABLE</label> [<a href="javascript:void(0);" onClick="return faq(\'',$_SERVER['PHP_SELF'], '?act=help&faq=drop_table\');">?</a>]</td><td><input id="drop" name="drop" type="checkbox" value="1"/></td>
+            <td><label for="drop">Add DROP TABLE</label> [<a href="javascript:void(0);" onClick="return faq(\'',$_SERVER['PHP_SELF'], '?act=help&amp;faq=drop_table\');">?</a>]</td><td><input id="drop" name="drop" type="checkbox" value="1"/></td>
           </tr>
           <tr>
-            <td><label for="debug_mode">Debug Mode</label> [<a href="javascript:void(0);" onClick="return faq(\'',$_SERVER['PHP_SELF'], '?act=help&faq=debug_mode\');">?</a>]</td><td><input id="debug_mode" name="debug_mode" type="checkbox" checked="checked"/></td>
+            <td><label for="debug_mode">Debug Mode</label> [<a href="javascript:void(0);" onClick="return faq(\'',$_SERVER['PHP_SELF'], '?act=help&amp;faq=debug_mode\');">?</a>]</td><td><input id="debug_mode" name="debug_mode" type="checkbox" checked="checked"/></td>
           </tr>          
           <tr>
-            <td><label for="transaction">Add TRANSACTIONs</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVE['PHP_SELF'], '?act=help&faq=transaction\');">?</a>]</td><td><input id="transaction" name="transaction" type="checkbox" checked="checked"/></td>
+            <td><label for="transaction">Add TRANSACTIONs</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVE['PHP_SELF'], '?act=help&amp;faq=transaction\');">?</a>]</td><td><input id="transaction" name="transaction" type="checkbox" checked="checked"/></td>
           </tr>
           <tr>
             <td colspan="2">Export as:</td>
           </tr>
           <tr>
-            <td><input name="type" value="sql" id="sql" type="radio" checked="checked" /> <label for="sql">SQL</label></td><td><input name="type" id="gz" value="gz" type="radio" ', !function_exists('ob_gzhandler') ? 'disabled="disabled" ' : '', '/> <label for="gz">GZipped</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=zlib\');">?</a>]</td>
+            <td><input name="type" value="sql" id="sql" type="radio" checked="checked" /> <label for="sql">SQL</label></td><td><input name="type" id="gz" value="gz" type="radio" ', !function_exists('ob_gzhandler') ? 'disabled="disabled" ' : '', '/> <label for="gz">GZipped</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&amp;faq=zlib\');">?</a>]</td>
           </tr>
           <tr align="center">
             <td colspan="2"><input type="button" onClick="window.location=\'', $_SERVER['PHP_SELF'], '\'" value="Cancel"/>&nbsp;&nbsp;&nbsp;<input name="export" type="submit" value="Download"/></td>
@@ -1384,7 +1384,7 @@ function show_select()
       # Now if it isn't a JOIN/EXPLAIN/etc. we can show a checkbox
       # Next to the name :)
       if(!$is_join)
-        echo '<th><input id="id_', $i, '" name="unique_id[', $i, ']" type="checkbox" title="Choose ', $colName, ' as a unique identifier" value="1" ', @in_array($colName, $primary) ? 'checked="checked" ' : '', '/> <label for="id_', $i, '" title="Choose ', $colName, ' as a unique identifier">', $colName, '</label></th>';
+        echo '<th><input id="id_', $i, '" name="unique_id[', $i, ']" type="checkbox" title="Select ', $colName, ' as a unique identifier" value="1" ', @in_array($colName, $primary) ? 'checked="checked" ' : '', '/> <label for="id_', $i, '" title="Select ', $colName, ' as a unique identifier">', $colName, '</label></th>';
       else
         # Just show the name...
         echo '<th>', $colName, '</th>';
@@ -1429,7 +1429,7 @@ function show_select()
     if(!$is_join)
       echo '
       <tr>
-        <td colspan="', $numCols + 1, '"><input name="edit_rows" onClick="return select_form(this.form, \'edit\');" type="submit" value="Edit selected"/> <input name="delete_rows" onClick="return select_form(this.form, \'delete\');" type="submit" value="Delete selected"/></td>
+        <td colspan="', $numCols + 1, '"><input name="edit_rows" accesskey="e" onClick="return select_form(this.form, \'edit\');" type="submit" value="Edit selected" title="Edit the selected rows (Alt + E)" /> <input name="delete_rows" accesskey="d" onClick="return select_form(this.form, \'delete\');" type="submit" value="Delete selected" title="Delete the selected rows (Alt + D)" /></td>
       </tr>';
 
     echo '
@@ -1653,7 +1653,7 @@ function print_struc()
       </table>
       <input name="tbl_name" type="hidden" value="', urlencode($tbl_name), '" />
     </form>
-    <p class="center" style="margin-top: 5px;">Options: [<a href="', $_SERVER['PHP_SELF'], '?act=sct&tbl=', $tbl_name, '" title="Show create table for ', $tbl_name, '">SCT</a>] [<a href="', $_SERVER['PHP_SELF'], '?act=query&q=SELECT+*+FROM+', $tbl_name, '" title="Select all from ', $tbl_name, '">SELECT</a>] [<a href="', $_SERVER['PHP_SELF'], '?act=insert&tbl=', $tbl_name, '" title="Insert a row into ', $tbl_name, '">INSERT</a>]</p>';
+    <p class="center" style="margin-top: 5px;">Options: [<a href="', $_SERVER['PHP_SELF'], '?act=sct&amp;tbl=', $tbl_name, '" title="Show create table for ', $tbl_name, '">SCT</a>] [<a href="', $_SERVER['PHP_SELF'], '?act=query&amp;q=SELECT+*+FROM+', $tbl_name, '" title="Select all from ', $tbl_name, '">SELECT</a>] [<a href="', $_SERVER['PHP_SELF'], '?act=insert&amp;tbl=', $tbl_name, '" title="Insert a row into ', $tbl_name, '">INSERT</a>]</p>';
   }
   else
     echo '
@@ -1688,15 +1688,27 @@ function print_sct()
     # But wait! It might not be one YOU made! It *might* be a PRIMARY KEY!
     # Which has no query, but it still appears...
     if(!empty($create_table))
+    {
+      # I hate double line breaked queries ¬.¬
+      $create_table = explode("\n", $create_table);
+      if(count($create_table) > 1)
+      {
+        $tmp = array();
+        foreach($create_table as $line)
+          if(trim($line) != '')
+            $tmp[] = $line;
+        $create_table = $tmp;
+      }
       echo '
     <table width="100%" cellspacing="1px" cellpadding="0px">
       <tr>
         <th>Table</th><th>Create Table</th>
       </tr>
       <tr class="tr_1">
-        <td>', $tbl_name, '</td><td><pre>', htmlspecialchars(trim($create_table), ENT_QUOTES), ';</td>
+        <td valign="top">', $tbl_name, '</td><td><pre>', htmlspecialchars(trim(implode("\r\n", $create_table)), ENT_QUOTES), ';</td>
       </tr>
     </table>';
+    }
     else
       echo '
     <div id="info_center">
@@ -1865,7 +1877,7 @@ function print_server_info()
         <td class="var">Safe Mode</td><td>', @ini_get('safe_mode') ? 'On' : 'Off', '</td>
       </tr>
       <tr align="center">
-        <td class="var">Zlib Support [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=zlib\');">?</a>]</td><td>', function_exists('ob_gzhandler') ? 'Enabled' : 'Disabled', '</td>
+        <td class="var">Zlib Support [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&amp;faq=zlib\');">?</a>]</td><td>', function_exists('ob_gzhandler') ? 'Enabled' : 'Disabled', '</td>
       </tr>';
 
       # PHP Info? Perhaps...
@@ -1917,7 +1929,7 @@ function print_createOptions()
   <div id="create_table">
     <h1>Create a table</h1>
     <p>First things first, we need a couple things from you.</p>
-    <form action="', $_SERVER['PHP_SELF'], '?act=create&table" method="post">
+    <form action="', $_SERVER['PHP_SELF'], '?act=create&amp;table" method="post">
       <table cellpadding="0px" cellspacing="1px" align="center">
         <tr>
           <td>Table name</td><td><input name="tbl_name" type="text" value="" /></td>
@@ -2126,7 +2138,7 @@ function template_header($title = '', $show_q = true)
   }
   function changeAction(handle)
   {
-    handle.action += \'?act=create&table\';
+    handle.action += \'?act=create&amp;table\';
   }
   </script>
   <style type="text/css">
@@ -2393,14 +2405,14 @@ function template_header($title = '', $show_q = true)
     echo '
   <br /><br /><br />
   <div align="center">
-    <p>SQLite queries to run through the database: (Queries separated by semicolons) [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=query\');">?</a>]</p>
+    <p>SQLite queries to run through the database: (Queries separated by semicolons) [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&amp;faq=query\');">?</a>]</p>
       <form action="', $_SERVER['PHP_SELF'], '" method="post">
         <textarea id="q_input" name="q" rows="10" cols="70">', htmlspecialchars($_REQUEST['q'], ENT_QUOTES), '</textarea>
         <table>
           <tr>
             <td><input type="button" onClick="clear_input(\'q_input\');" value="Clear"/></td>
             <td><input name="go" type="submit" value="Process Queries!"/></td>
-            <td><input name="fulltext" id="fulltext" type="checkbox" value="1" ', !empty($_REQUEST['fulltext']) ? 'checked="checked" ' : '', '/> <label for="fulltext">Show Full texts</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&faq=fulltexts\');">?</a>]</td>
+            <td><input name="fulltext" id="fulltext" type="checkbox" value="1" ', !empty($_REQUEST['fulltext']) ? 'checked="checked" ' : '', '/> <label for="fulltext">Show Full texts</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&amp;faq=fulltexts\');">?</a>]</td>
           </tr>
           <input name="act" type="hidden" value="query"/>
         </table>
