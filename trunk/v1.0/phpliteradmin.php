@@ -1164,6 +1164,9 @@ function do_export()
     $db_name = implode('.', $db_name);
   }
 
+  # Start output buffering...
+  ob_start();
+
   # We are about to send out the headers, but...
   $mime_type = 'text/sql';
   $ext = '.sql';
@@ -1174,24 +1177,11 @@ function do_export()
   {
     $mime_type = 'application/x-gzip';
     $ext = '.sql.gz';
-
-    # Extra headers...
-    @ob_start('ob_gzhandler');
-		header('Accept-Ranges: bytes');
-		header('Content-Encoding: none');
+    $do_gz = true;
   }
 
   # Line break variable...
   $lb = "\r\n";
-
-  # Now the headers!
-  header('Pragma: public');  
-  header('Expires: 0'); 
-  header('Cache-Control: must-revalidate, post-check=0, pre-check=0'); 
-  header('Cache-Control: private',false); // required for certain browsers 
-  header('Content-Transfer-Encoding: binary'); 
-  header('Content-Type: '. $mime_type); 
-  header('Content-Disposition: attachment; filename="'. $db_name. '-'. date('m-d-Y'). $ext. '";');
 
   # Output our comments...
   echo '----', $lb,
@@ -1260,6 +1250,27 @@ function do_export()
       }
     }
   }
+
+  # We need to get all the contents :P
+  $backup_sql = ob_get_contents();
+
+  # Clean it up...
+  ob_end_clean();
+
+  # GZip it?
+  if($do_gz)
+    $backup_sql = gzencode($backup_sql);
+
+  # Now the headers!
+  header('Pragma: public');
+  header('Expires: 0');
+  header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+  header('Cache-Control: private', false);
+  header('Content-Transfer-Encoding: binary');
+  header('Content-Type: '. $mime_type);
+  header('Content-Disposition: attachment; filename="'. $db_name. '-'. date('m-d-Y'). $ext. '";');
+
+  echo $backup_sql;
 
   # And we are DONE!
   exit;
