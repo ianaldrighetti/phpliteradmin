@@ -1705,7 +1705,7 @@ function print_sct()
         $tmp = array();
         foreach($create_table as $line)
           if(trim($line) != '')
-            $tmp[] = $line;
+            $tmp[] = rtrim($line);
         $create_table = $tmp;
       }
       echo '
