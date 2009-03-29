@@ -53,7 +53,7 @@ $config['lock_down'] = 0;
 # The SQLite databases you wish to manage... be sure to include
 # the correct path to them. Please note that if the database doesn't
 # exist, it is automatically created, due to how sqlite_open works.
-$config['db'] = array('./db.db', 'settings.db');
+$config['db'] = array('smf_c56ab67bcb.db');
 
 # Cookie name for if someone wants to be remembered... Should
 # be changed if you have multiple phpLiterAdmin's under the same
@@ -164,11 +164,20 @@ if($config['is_logged'])
 
   # We should make sure you can access the database in your session
   # still... Someone might have changed it :P
-  if(!in_array($_SESSION['db'], $config['db']))
+  if(!@in_array($_SESSION['db'], $config['db']) && is_array($config['db']))
   {
-    # Unset it... and say its not allowed!
+    # Unset it...
     unset($_SESSION['db']);
-    $config['db_not_allowed'] = true;
+
+    # If there is more then one database, show a message...
+    # otherwise, why bother if we are going to choose one?
+    if(count($config['db']) > 1)
+      $config['db_not_allowed'] = true;
+  }
+  elseif($_SESSION['db'] != $config['db'] && !is_array($config['db']))
+  {
+    # Unset it... but don't say its not allowed ;)
+    unset($_SESSION['db']);
   }
 
   # But wait... only one database? Select that!
