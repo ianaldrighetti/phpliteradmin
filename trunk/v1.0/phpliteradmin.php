@@ -53,7 +53,7 @@ $config['lock_down'] = 0;
 # The SQLite databases you wish to manage... be sure to include
 # the correct path to them. Please note that if the database doesn't
 # exist, it is automatically created, due to how sqlite_open works.
-$config['db'] = array('smf_c56ab67bcb.db');
+$config['db'] = array('db.db', 'settings.db');
 
 # Cookie name for if someone wants to be remembered... Should
 # be changed if you have multiple phpLiterAdmin's under the same
@@ -2149,6 +2149,16 @@ function template_header($title = '', $show_q = true)
   {
     handle.action += \'?act=create&amp;table\';
   }
+  function check_query(handle)
+  {
+    query = handle.q.value;
+
+    // You sure? :P
+    if((query.substring(0, 4)).toUpperCase() == "DROP" || (query.substring(0, 6)).toUpperCase() == "DELETE")
+      return confirm(\'Are you sure you want to continue?\');
+
+    return true;
+  }
   </script>
   <style type="text/css">
     *
@@ -2420,7 +2430,7 @@ function template_header($title = '', $show_q = true)
         <table>
           <tr>
             <td><input type="button" onClick="clear_input(\'q_input\');" value="Clear"/></td>
-            <td><input name="go" type="submit" value="Process Queries!"/></td>
+            <td><input name="go" type="submit" onClick="return check_query(this.form);" value="Process Queries!"/></td>
             <td><input name="fulltext" id="fulltext" type="checkbox" value="1" ', !empty($_REQUEST['fulltext']) ? 'checked="checked" ' : '', '/> <label for="fulltext">Show Full texts</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&amp;faq=fulltexts\');">?</a>]</td>
           </tr>
           <input name="act" type="hidden" value="query"/>
