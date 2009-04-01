@@ -233,7 +233,40 @@ if($config['is_logged'])
   elseif(!empty($_REQUEST['act']) && $_REQUEST['act'] == 'query')
   {
     # Get our query...
-    $query = $_REQUEST['q'];
+    $query = ltrim($_REQUEST['q']);
+
+    # Comment maybe..?
+    if(substr($query, 0, 2) == '--')
+    {
+      # So get the comment and then the actual query ;)
+      @list($comment, $query) = explode("\n", $query, 2);
+
+      if(empty($query))
+        # Just incase ;)
+        $query = '';
+
+      # Trim it up...
+      $query = trim($query);
+
+      # A new feature is that you can control a feature from a comment.
+      # I would like to have more, but idk what else XD.
+      $command = trim(substr($comment, 2, strlen($comment)));
+
+      # If the first character is a ! we take it as a command.
+      if(substr($command, 0, 1) == '!')
+      {
+        # Okay, now get the command XD.
+        $command = trim(substr($command, 1, strlen($command)));
+        if(preg_match('~^(no )?show full( )?texts?~i', $command, $matches))
+        {
+          # No..?
+          if(strtolower(trim($matches['1'])) == 'no')
+            $_REQUEST['fulltext'] = false;
+          else
+            $_REQUEST['fulltext'] = true;
+        }
+      }
+    }
 
     # Run the query through the database...
     $start_time = microtime(true);
