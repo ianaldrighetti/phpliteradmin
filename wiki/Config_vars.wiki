@@ -23,26 +23,44 @@ You can of course have multiple users by adding another row to the array like:
   }}}
 *NOTE*: Usernames and passwords _are_ case-sensitive.
 ----
-
+===Show Indexes..?===
 {{{
 bool $config['show_indexes']
 }}}
+In SQLite indexes can display as their own "table" in the phpLiterAdmin list if you set $config['show_indexes'] to true, you can of course still tell the difference between a table and an index as in the row *Type* it will say index. 
 
+Just note that to whatever setting you set this to, users can change this for their current session. $config['show_indexes'] is only used as the default value and users can click on "Show indexes" or "Don't show indexes" to do as they say ;)
+
+*Options*: true - Show indexes by default, false - Don't show indexes by default.
+
+----
+===Locking phpLiterAdmin===
 {{{
 int $config['lock_down']
 }}}
+A very useful feature, you can lock your phpLiterAdmin install and disallow anyone access to it. People of course will still be able to go to the file, but they won't be able to try to login. The only way to unlock phpLiterAdmin is to have file access.
+
+*Options*: 0 - Disabled, 1 - Enabled.
+
+----
 
 {{{
 mixed $config['db']
 }}}
 
+----
+
 {{{
 string $config['cookie_name']
 }}}
 
+----
+
 {{{
 bool $config['persist']
 }}}
+
+----
 
 {{{
 int $config['phpinfo']
