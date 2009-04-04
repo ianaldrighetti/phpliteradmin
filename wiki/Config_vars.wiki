@@ -1,3 +1,39 @@
 #labels Featured,Phase-Deploy
 ==Config vars==
 When [http://code.google.com/p/phpliteradmin/wiki/Installation installing] phpLiterAdmin there are some $config variables that need editing, or at least, that you should edit ;) Though each variable has a little description near it, you can find more information about it here.
+
+----
+{{{
+array $config['users']
+}}}
+With phpLiterAdmin you can have multiple users which can access your SQLite databases. The setup is very simple... For example, if you want to have a user with the username of TESTING and the password of PASSWORD it would look like this:
+  {{{
+    $config['users'] = array(
+      'TESTING' => 'PASSWORD',
+    );
+  }}}
+----
+
+{{{
+bool $config['show_indexes']
+}}}
+
+{{{
+int $config['lock_down']
+}}}
+
+{{{
+mixed $config['db']
+}}}
+
+{{{
+string $config['cookie_name']
+}}}
+
+{{{
+bool $config['persist']
+}}}
+
+{{{
+int $config['phpinfo']
+}}}
