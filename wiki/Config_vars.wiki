@@ -2,6 +2,8 @@
 ==Config vars==
 When [http://code.google.com/p/phpliteradmin/wiki/Installation installing] phpLiterAdmin there are some $config variables that need editing, or at least, that you should edit ;) Though each variable has a little description near it, you can find more information about it here.
 
+*For versions*: v1.0 only! In v1.0 the $settings array is renamed with $config
+
 ----
 ===Setting up users===
 {{{
@@ -63,17 +65,24 @@ When you then access phpLiterAdmin you will have a select box to choose from whi
 *Security Note*: There is _NO WAY_ to specify which users can access which database at this time. So if you do not want a user accessing a database thats in the array either don't have that user on this install or don't have that database on that install. Your choice!
 
 ----
-
+===Setting the cookie name===
 {{{
 string $config['cookie_name']
 }}}
+If you have multiple phpLiterAdmin installations on the same domain, it just might be useful to change this variable to something different unless you want to have to constantly login in over and over again for each install (unless each install has the same username and passwords).
+
+*Options*: Vary. By default it is phpLiterAdmin(NUMBER)
 
 ----
-
+===Persistent connection===
 {{{
 bool $config['persist']
 }}}
+If you want to have a persistent connection to the SQLite database set this to true. The benefit of using a persistent connection is really good, because with a regular connection each time the database has to be re-read and so do the indexes, but with a persistent connection it can use an older persistent connection instead.
 
+*NOTE*: For more information about using a persistent connection on an SQLite database, checkout the [http://www.php.net/sqlite_popen sqlite_popen] page at www.php.net
+
+*Options*: true - Enabled, false - Disabled.
 ----
 
 {{{
