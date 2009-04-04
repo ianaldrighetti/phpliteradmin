@@ -22,8 +22,7 @@ You can of course have multiple users by adding another row to the array like:
     );
   }}}
 *NOTE*: Usernames and passwords _are_ case-sensitive.
-----
-===Show Indexes..?===
+----===Show Indexes..?===
 {{{
 bool $config['show_indexes']
 }}}
