@@ -1,0 +1,5 @@
+#labels Featured,Phase-Deploy
+==Installation==
+Installing phpLiterAdmin is pretty easy and there is not much to do. If you do need help you can follow these instructions.
+
+1) *Download* [http://code.google.com/p/phpliteradmin/downloads/list Download the latest] (The latest and stable versions will have tags of Latest and Stable)
