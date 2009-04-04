@@ -24,6 +24,9 @@ You can of course have multiple users by adding another row to the array like:
     );
   }}}
 *NOTE*: Usernames and passwords _are_ case-sensitive.
+
+*Security Note*: It is _HIGHLY_ recommended you change this! By default it is set to admin admin! So PLEASE edit this by at least changing the password for security reasons!
+
 ----===Show Indexes..?===
 {{{
 bool $config['show_indexes']
@@ -32,7 +35,7 @@ In SQLite indexes can display as their own "table" in the phpLiterAdmin list if 
 
 Just note that to whatever setting you set this to, users can change this for their current session. $config['show_indexes'] is only used as the default value and users can click on "Show indexes" or "Don't show indexes" to do as they say ;)
 
-*Options*: true - Show indexes by default, false - Don't show indexes by default.
+*Options*: true - Show indexes by default, false - Don't show indexes by default (Default).
 
 ----
 ===Locking phpLiterAdmin===
@@ -41,7 +44,7 @@ int $config['lock_down']
 }}}
 A very useful feature, you can lock your phpLiterAdmin install and disallow anyone access to it. People of course will still be able to go to the file, but they won't be able to try to login. The only way to unlock phpLiterAdmin is to have file access.
 
-*Options*: 0 - Disabled, 1 - Enabled.
+*Options*: 0 - Disabled (Default), 1 - Enabled.
 
 ----
 ===Configuring multiple databases===
@@ -80,11 +83,17 @@ bool $config['persist']
 }}}
 If you want to have a persistent connection to the SQLite database set this to true. The benefit of using a persistent connection is really good, because with a regular connection each time the database has to be re-read and so do the indexes, but with a persistent connection it can use an older persistent connection instead.
 
+*Options*: true - Enabled (Default), false - Disabled.
+
 *NOTE*: For more information about using a persistent connection on an SQLite database, checkout the [http://www.php.net/sqlite_popen sqlite_popen] page at www.php.net
 
-*Options*: true - Enabled, false - Disabled.
 ----
-
+===PHP Information===
 {{{
 int $config['phpinfo']
 }}}
+For possible security reasons you are allowed to specify whether or not people who are logged in may see the PHP Information of the server. By allowing this, it will allow people to look at everything [http://www.php.net/phpinfo phpinfo] outputs.
+
+*Options*: 1 - Allow (Default), 0 - Disallow.
+
+*NOTE*: Sometimes some hosts disallow the ability to look at the phpinfo. It is rare, but it can be done ;)
