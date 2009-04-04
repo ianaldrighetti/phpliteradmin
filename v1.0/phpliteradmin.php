@@ -1,8 +1,8 @@
 <?php
 #
-#              phpLiterAdmin v1.0
-#            http://nosql.110mb.com/
-#     http://phpliteradmin.googlecode.com/
+#                phpLiterAdmin v1.0
+#             http://nosql.110mb.com/
+#       http://phpliteradmin.googlecode.com/
 #
 #   phpLiterAdmin is a SQLite Manage wihich works
 #   with SQLite 2.x. It has not been tested with
@@ -12,12 +12,15 @@
 #
 #   phpLiterAdmin is released under the GNU GPL v2
 #   License. This script is provided "AS IS" with no
-#   warranty whatso ever. We (the phpLiterAdmin creators,
-#   and everyone else  in the world) are not responsible
-#   for what may occur with using this script, whether it
-#   be to your server, your host, your data, your databases,
-#   and so on and so forth, ITS NOT OUR RESPONSIBILITY NOR
-#   ARE WE LIABLE! :)
+# warranty whatso ever. We (the phpLiterAdmin creators,
+#  and everyone else  in the world) are not responsible
+#  for what may occur with using this script, whether it
+# be to your server, your host, your data, your databases,
+# and so on and so forth, ITS NOT OUR RESPONSIBILITY AND
+#               WE ARE NOT LIABLE! :)
+#
+# Installation:
+# http://code.google.com/p/phpliteradmin/wiki/Installation
 #
 
 # We must start our session :)
@@ -26,10 +29,15 @@ session_start();
 # Magic Quotes ON? Fix the dumb thing!
 fixMagic();
 
-@set_magic_quotes_runtime(false);
+if(function_exists('set_magic_quotes_runtime'))
+  @set_magic_quotes_runtime(false);
 
 # How long did this take? :P
 $start_time = microtime(true);
+
+# More information about each config var is available at
+# the Google Code project wiki pages.
+# http://code.google.com/p/phpliteradmin/wiki/Config_vars
 
 # Now the settings for your phpLiterAdmin install.
 #   Your users that can access your databases, add them
