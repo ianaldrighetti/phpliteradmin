@@ -3,6 +3,7 @@
 When [http://code.google.com/p/phpliteradmin/wiki/Installation installing] phpLiterAdmin there are some $config variables that need editing, or at least, that you should edit ;) Though each variable has a little description near it, you can find more information about it here.
 
 ----
+===Setting up users===
 {{{
 array $config['users']
 }}}
@@ -12,6 +13,15 @@ With phpLiterAdmin you can have multiple users which can access your SQLite data
       'TESTING' => 'PASSWORD',
     );
   }}}
+
+You can of course have multiple users by adding another row to the array like:
+  {{{
+    $config['users'] = array(
+      'TESTING' => 'PASSWORD',
+      'ANOTHER_USER' => 'PASSWORD_FOR_ANOTHER_USER',
+    );
+  }}}
+*NOTE*: Usernames and passwords _are_ case-sensitive.
 ----
 
 {{{
