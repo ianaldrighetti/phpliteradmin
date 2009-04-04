@@ -42,10 +42,25 @@ A very useful feature, you can lock your phpLiterAdmin install and disallow anyo
 *Options*: 0 - Disabled, 1 - Enabled.
 
 ----
-
+===Configuring multiple databases===
 {{{
 mixed $config['db']
 }}}
+Instead of having to constantly download, edit and upload the phpLiterAdmin file you can set multiple database files which you want to edit in the array. You can do this a couple of ways. If you only want 1 database to be able to be accessed, just set it something like this:
+  {{{
+    $config['db'] = 'Database.db';
+    // But this works too :P
+    $config['db'] = array('Database.db');
+  }}}
+But if you want to be able to switch between databases quickly simply make an array of multiple databases.
+  {{{
+    $config['db'] = array('Database1.db', 'Database2.db');
+  }}}
+When you then access phpLiterAdmin you will have a select box to choose from which database you want to manage.
+
+*Options*: Vary. Can be a string or an array.
+
+*Security Note*: There is _NO WAY_ to specify which users can access which database at this time. So if you do not want a user accessing a database thats in the array either don't have that user on this install or don't have that database on that install. Your choice!
 
 ----
 
