@@ -1,0 +1,3 @@
+#labels Featured,Phase-Deploy
+==Config vars==
+When [http://code.google.com/p/phpliteradmin/wiki/Installation installing] phpLiterAdmin there are some $config variables that need editing, or at least, that you should edit ;) Though each variable has a little description near it, you can find more information about it here.
