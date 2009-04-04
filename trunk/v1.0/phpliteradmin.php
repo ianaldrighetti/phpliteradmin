@@ -2597,7 +2597,7 @@ function fixMagic()
   global $_COOKIE, $_GET, $_POST, $_REQUEST, $_SERVER;
 
   # So is it even on?
-  if(function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc() == 1)
+  if((function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc() == 1) || @ini_get('magic_quotes_sybase'))
   {
     # Do some magic on it XD
     $_COOKIE = wizardMagic($_COOKIE);
