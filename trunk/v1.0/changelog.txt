@@ -1,0 +1,11 @@
+Changelog kept since v1.0 RC1.
+
+Changes from Beta 3 to RC1
++ A couple links added and such... (To Wiki Pages) [r32]
+! Magic Quotes Sybase now fixed... (Magic Quotes Sybase setting was being ignored) [r20]
++ Added ability to control show full texts through SQL comments ;) [r18]
++ Added a little Are you sure thing when you do a DELETE or DROP query [r17]
+! Little print_sct bug fix ;) (CREATE TABLE formatting problem) [r16]
+! Bugs fixed in security measure... The security measure checks to make sure the
+database in their session is still allowed to be used... the way it was checked
+*was* screwed up :P Should be fine now XD! [r15]
