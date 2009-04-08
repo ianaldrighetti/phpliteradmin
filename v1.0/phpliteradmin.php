@@ -909,6 +909,9 @@ function table_options()
         <td>
           <input name="show_indexes" accesskey="i" type="submit" title="', (isset($_SESSION['show_indexes']) && $_SESSION['show_indexes'] ? 'Don\'t show indexes' : 'Show indexes'), ' (Alt + I)" value="', (isset($_SESSION['show_indexes']) && $_SESSION['show_indexes']) ? 'Don\'t show indexes' : 'Show indexes', '"/>
         </td>
+        <td>
+          <input name="export" accesskey="e" type="submit" title="Export selected tables" onClick="this.form.action = \'?act=export\';" value="Export" />
+        </td>
       </tr>
     </table>';
 }
@@ -1166,7 +1169,7 @@ function print_export()
   <div id="export">
     <h1>Export Database</h1>
       <form action="', $_SERVER['PHP_SELF'], '?act=export&amp;export" method="post">
-        <table align="center">
+        <table align="center" style="margin-left: 20px;">
           <tr>
             <td><label for="struc">Export with Structure</label> [<a href="javascript:void(0);" onClick="return faq(\'',$_SERVER['PHP_SELF'], '?act=help&amp;faq=export_struc\');">?</a>]</td><td><input id="struc" name="struc" id="struc" type="checkbox" checked="checked" value="1"/></td>
           </tr>
@@ -1183,13 +1186,33 @@ function print_export()
             <td><label for="transaction">Add TRANSACTIONs</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVE['PHP_SELF'], '?act=help&amp;faq=transaction\');">?</a>]</td><td><input id="transaction" name="transaction" type="checkbox" checked="checked"/></td>
           </tr>
           <tr>
+            <td colspan="2"><a href="javascript:void(0);" onClick="toggleDiv(\'table_list\');">Select tables to export</a></td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <div id="table_list" style="display: none;">
+                <select name="tbl[]" size="6" multiple="multiple">';
+
+                # Get a list of tables :D!
+                $result = sql_query('SELECT DISTINCT tbl_name FROM sqlite_master ORDER BY tbl_name ASC');
+                while($row = sqlite_fetch_array($result, SQLITE_ASSOC))
+                  echo '
+                  <option value="', $row['tbl_name'], '"', empty($_POST['tbl']) || (is_array($_POST['tbl']) && in_array($row['tbl_name'], $_POST['tbl'])) ? ' selected="selected"' : '', '>', $row['tbl_name'], '</option>';
+
+  echo '
+                </select>
+                <p><a href="javascript:void(0);" onClick="selectAll(\'tbl[]\', true);">Select all</a> / <a href="javascript:void(0);" onClick="selectAll(\'tbl[]\', false);">Unselect all</a></p>
+              </div>
+            </td>
+          </tr>
+          <tr>
             <td colspan="2">Export as:</td>
           </tr>
           <tr>
             <td><input name="type" value="sql" id="sql" type="radio" checked="checked" /> <label for="sql">SQL</label></td><td><input name="type" id="gz" value="gz" type="radio" ', !function_exists('ob_gzhandler') ? 'disabled="disabled" ' : '', '/> <label for="gz">GZipped</label> [<a href="javascript:void(0);" onClick="return faq(\'', $_SERVER['PHP_SELF'], '?act=help&amp;faq=zlib\');">?</a>]</td>
           </tr>
           <tr align="center">
-            <td colspan="2"><input type="button" onClick="window.location=\'', $_SERVER['PHP_SELF'], '\'" value="Cancel"/>&nbsp;&nbsp;&nbsp;<input name="export" type="submit" value="Download"/></td>
+            <td colspan="2"><input type="button" onClick="window.location=\'', $_SERVER['PHP_SELF'], '\'" value="Cancel"/>&nbsp;<input name="export" type="submit" value="Download"/></td>
           </tr>
         </table>
         <input name="sa" type="hidden" value="export"/>
@@ -1261,6 +1284,11 @@ function do_export()
 
   while($tbl = sqlite_fetch_array($table_result, SQLITE_ASSOC))
   {
+    # Wait! Do you want to export this table..?
+    if(!in_array($tbl['tbl_name'], $_REQUEST['tbl']))
+      # Oh noes! You don't want it? :( Fine. Skip it.
+      continue;
+
     # Do they want to do a drop table?
     if(!empty($_POST['drop']) && !empty($tbl['sql']))
       echo '----', $lb,
@@ -1272,7 +1300,7 @@ function do_export()
       echo '----', $lb,
            '-- ', $tbl['type'] == 'index' ? 'Index' : 'Table', ' structure for ', $tbl['name'], $lb,
            '----', $lb,
-           $tbl['sql'], ';', $lb, $lb;
+           formatStruc($tbl['sql']), ';', $lb, $lb;
 
     # The data? Must be a table! ^^
     if(!empty($_POST['data']) && $tbl['type'] == 'table')
@@ -1339,6 +1367,22 @@ function do_export()
 
   # And we are DONE!
   exit;
+}
+
+# Format the structure a bit :P
+function formatStruc($create_table)
+{
+  $create_table = explode("\n", $create_table);
+  if(count($create_table) > 1)
+  {
+    $tmp = array();
+    foreach($create_table as $line)
+      if(trim($line) != '')
+        $tmp[] = rtrim($line);
+    $create_table = $tmp;
+  }
+
+  return trim(implode("\r\n", $create_table));
 }
 
 # Importing a SQL backup?
@@ -2144,6 +2188,13 @@ function template_header($title = '', $show_q = true)
       }
     }
   }
+  function selectAll(input, selectThem)
+  {
+    handle = document.forms[0].elements[input];
+
+    for(var i = 0; i < handle.length; i++)
+        handle.options[i].selected = selectThem;
+  }
   function select_rows(input)
   {
     first = 0;
@@ -2199,6 +2250,18 @@ function template_header($title = '', $show_q = true)
       return confirm(\'Are you sure you want to continue?\');
 
     return true;
+  }
+  function toggleDiv(div_id)
+  {
+    handle = document.getElementById(div_id);
+
+    if(handle)
+    {
+      if(handle.style.display == \'none\')
+        handle.style.display = \'block\';
+      else
+        handle.style.display = \'none\'
+    }
   }
   </script>
   <style type="text/css">
