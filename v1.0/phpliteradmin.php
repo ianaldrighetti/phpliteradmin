@@ -1279,8 +1279,46 @@ function do_export()
        '-- Database file: ', $db_name, $lb,
        '----', $lb, $lb;
 
+  # Get all of our indexes. Or at least the ones we want...
+  # Only if we want the structure!
+  if(!empty($_POST['struc']))
+  {
+    $index_result = sql_query('SELECT * FROM sqlite_master WHERE type = \'index\'');
+
+    # So make an array where we can put them :P
+    $indexes = array();
+
+    while($row = sqlite_fetch_array($index_result, SQLITE_ASSOC))
+    {
+      # sql empty? That means it is probably a PRIMARY KEY
+      # which has no query, but still appears :P Or this table
+      # not even needed? (Not chosen to be exported)
+      if(empty($row['sql']) || !in_array($row['tbl_name'], $_REQUEST['tbl']))
+        # It is one of those. Skip!
+        continue;
+
+      # Table have a row in the array already?
+      if(!isset($indexes[$row['tbl_name']]))
+        # Make it be!
+        $indexes[$row['tbl_name']] = array();
+
+      # Now add the DROP INDEX?
+      if(!empty($_POST['drop']))
+        $indexes[$row['tbl_name']][] = '----'. $lb.
+                                       '-- Drop index for '. $row['name']. $lb.
+                                       '----'. $lb.
+                                       'DROP INDEX \''. $row['name']. '\';'. $lb;
+
+      # Add the query.
+      $indexes[$row['tbl_name']][] = '----'. $lb.
+                                     '-- Structure for index '. $row['name']. ' on table '. $row['tbl_name']. $lb.
+                                     '----'. $lb.
+                                     formatStruc($row['sql']). ';'. $lb. $lb;
+    }
+  }
+
   # Now this is where we output all the stuffs!
-  $table_result = sql_query('SELECT * FROM sqlite_master');
+  $table_result = sql_query('SELECT * FROM sqlite_master WHERE type = \'table\'');
 
   while($tbl = sqlite_fetch_array($table_result, SQLITE_ASSOC))
   {
@@ -1292,26 +1330,34 @@ function do_export()
     # Do they want to do a drop table?
     if(!empty($_POST['drop']) && !empty($tbl['sql']))
       echo '----', $lb,
-           '-- Drop ', $tbl['type'] == 'index' ? 'index' : 'table', ' for ', $tbl['name'], $lb,
+           '-- Drop table for ', $tbl['name'], $lb,
            '----', $lb,
-           'DROP ', $tbl['type'] == 'index' ? 'INDEX' : 'TABLE', ' \'', $tbl['name'], '\';', $lb;
+           'DROP TABLE \'', $tbl['name'], '\';', $lb;
+
     # The structure..?
     if(!empty($_POST['struc']) && !empty($tbl['sql']))
+    {
       echo '----', $lb,
-           '-- ', $tbl['type'] == 'index' ? 'Index' : 'Table', ' structure for ', $tbl['name'], $lb,
+           '-- Table structure for ', $tbl['tbl_name'], $lb,
            '----', $lb,
            formatStruc($tbl['sql']), ';', $lb, $lb;
 
+      # Indexes..?
+      if(isset($indexes[$tbl['tbl_name']]) && count($indexes[$tbl['tbl_name']]))
+        # Just output them.
+        echo implode($indexes[$tbl['tbl_name']]);
+    }
+
     # The data? Must be a table! ^^
-    if(!empty($_POST['data']) && $tbl['type'] == 'table')
+    if(!empty($_POST['data']))
     {
       # Yup... the data... If anything...
       # Now the data... select it all!
       $result = sql_query("SELECT * FROM '". $tbl['name']. "'");
-      if(sqlite_num_rows($result) > 0)
+      if(($num_rows = sqlite_num_rows($result)) > 0)
       {
         echo '----', $lb,
-             '-- Data dump for ', $tbl['name'], $lb,
+             '-- Data dump for ', $tbl['name'], ', a total of ', number_format($num_rows), ' rows', $lb,
              '----', $lb;
 
         # Do you want transactions?
