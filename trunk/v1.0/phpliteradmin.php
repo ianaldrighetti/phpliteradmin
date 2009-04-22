@@ -1952,7 +1952,7 @@ function print_insert()
         {
           echo '
           <tr>
-            <td class="insert">', $colName, '</td><td class="insert">', strtoupper($dataType), '</td><td align="center">', buildFunctionList($colName, 0), '</td><td align="center">', showInput($dataType, 'value['. $colName. ']'), '</td>
+            <td class="insert">', $colName, '</td><td class="insert">', strtoupper($dataType), '</td><td align="center">', buildFunctionList(0, $colName), '</td><td align="center">', showInput($dataType, 'value['. $colName. ']'), '</td>
           </tr>';
         }
 
