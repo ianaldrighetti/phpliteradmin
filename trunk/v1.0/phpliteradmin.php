@@ -1910,16 +1910,16 @@ function print_insert()
         $value = $_REQUEST['value'][$colName];
 
         # Any function? If so, is it allowed?
-        if(!empty($_REQUEST['functionStr'][$colName][0]) && in_array($_REQUEST['functionStr'][$colName][0], $allowed_func))
+        if(!empty($_REQUEST['functionStr'][0][$colName]) && in_array($_REQUEST['functionStr'][0][$colName], $allowed_func))
         {
-          if($_REQUEST['functionStr'][$colName][0] == 'time')
+          if($_REQUEST['functionStr'][0][$colName] == 'time')
             $value = time();
           else
-            $value = $_REQUEST['functionStr'][$colName][0]($_REQUEST['value'][$colName]);
+            $value = $_REQUEST['functionStr'][0][$colName]($_REQUEST['value'][$colName]);
         }
 
         # Empty? Lets do it!!!
-        if(empty($value))
+        if(!isset($value) || $value == '')
           $value = 'NULL';
         else
           $value = '\''. $value. '\'';
@@ -1935,7 +1935,7 @@ function print_insert()
       $result = sql_query($query, $query_error);
 
       # But was it a success?
-      if(empty($query_error))
+      if($result)
         echo '<p style="color: green;" class="center">Row Inserted Successfully!</p>';
       else
         echo '<p class="error center">Query Error: ', $query_error, '</p>';
