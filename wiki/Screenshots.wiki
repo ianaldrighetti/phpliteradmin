@@ -3,4 +3,4 @@
 Here are some screenshots from the latest version of phpLiterAdmin v1.0 RC1
 
 || [http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-list.png http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-list-small.png] || [http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-select.png http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-select-small.png] || [http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-create.png http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-create-small.png] ||
-|| [http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-wizard.png http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-wizard-small.png] || [http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-export.png http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-export-small.png] ||
+|| [http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-wizard.png http://images.mschat.net/phpliteradmin/phpliteradmin-v1-table-wizard-small.png] || [http://images.mschat.net/phpliteradmin/phpliteradmin-v1-export.png http://images.mschat.net/phpliteradmin/phpliteradmin-v1-export-small.png] ||
