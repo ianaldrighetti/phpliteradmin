@@ -2,4 +2,4 @@
 ==Screenshots==
 Here are some screenshots from the latest version of phpLiterAdmin v1.0 RC1
 
-[http://images.mschat.net/phpliteradmin/phpliteradmin-v1-full.png Test]
+[http://images.mschat.net/phpliteradmin/phpliteradmin-v1-full.png]
