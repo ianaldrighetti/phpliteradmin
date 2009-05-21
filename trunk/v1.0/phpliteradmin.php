@@ -874,7 +874,7 @@ function list_tables()
       {
         echo '
       <tr class="', $i == 0 ? 'tr_1' : 'tr_2', '">
-        <td><input name="tbl[]" type="checkbox" value="', $tbl['name'], '"/></td><td><a href="', $_SERVER['PHP_SELF'], '?act=query&amp;q=SELECT+*+FROM+', $tbl['tbl_name'], '">', $tbl['name'], '</a></td><td>[<a href="', $_SERVER['PHP_SELF'], '?act=struc&amp;tbl=', $tbl['tbl_name'], '" title="Table Structure for ', $tbl['tbl_name'], '">Structure</a>]</td><td>[<a href="', $_SERVER['PHP_SELF'], '?act=sct&amp;tbl=', $tbl['name'], '" title="Show Create Table for ', $tbl['name'], '">SCT</a>]</td><td class="center">[<a href="', $_SERVER['PHP_SELF'], '?act=insert&amp;tbl=', $tbl['tbl_name'], '" title="Insert a row into ', $tbl['tbl_name'], '">Insert</a>]<td class="center">', num_rows($tbl['name'], $tbl['type']), '</td><td class="center">', $tbl['type'], '</td>
+        <td><input name="tbl[]" type="checkbox" value="', urlencode($tbl['name']), '"/></td><td><a href="', $_SERVER['PHP_SELF'], '?act=query&amp;q=SELECT+*+FROM+', urlencode('\''. $tbl['tbl_name']. '\''), '">', $tbl['name'], '</a></td><td>[<a href="', $_SERVER['PHP_SELF'], '?act=struc&amp;tbl=', urlencode($tbl['tbl_name']), '" title="Table Structure for ', $tbl['tbl_name'], '">Structure</a>]</td><td>[<a href="', $_SERVER['PHP_SELF'], '?act=sct&amp;tbl=', urlencode($tbl['name']), '" title="Show Create Table for ', $tbl['name'], '">SCT</a>]</td><td class="center">[<a href="', $_SERVER['PHP_SELF'], '?act=insert&amp;tbl=', urlencode($tbl['tbl_name']), '" title="Insert a row into ', $tbl['tbl_name'], '">Insert</a>]<td class="center">', num_rows($tbl['name'], $tbl['type']), '</td><td class="center">', $tbl['type'], '</td>
       </tr>';
 
         # Make 0 be 1, and 1 be 0 :)
