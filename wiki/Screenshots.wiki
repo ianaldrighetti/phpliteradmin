@@ -1,1 +1,5 @@
 #labels Featured
+==Screenshots==
+Here are some screenshots from the latest version of phpLiterAdmin v1.0 RC1
+
+[http://code.google.com/p/phpliteradmin/logo?logo_id=1238209038]
