@@ -1,0 +1,110 @@
+## Config vars ##
+When [installing](http://code.google.com/p/phpliteradmin/wiki/Installation) phpLiterAdmin there are some $config variables that need editing, or at least, that you should edit ;) Though each variable has a little description near it, you can find more information about it here.
+
+**For versions**: v1.0 only! In v1.0 the $settings array is renamed with $config
+
+
+---
+
+### Setting up users ###
+```
+array $config['users']
+```
+With phpLiterAdmin you can have multiple users which can access your SQLite databases. The setup is very simple... For example, if you want to have a user with the username of TESTING and the password of PASSWORD it would look like this:
+```
+    $config['users'] = array(
+      'TESTING' => 'PASSWORD',
+    );
+```
+
+You can of course have multiple users by adding another row to the array like:
+```
+    $config['users'] = array(
+      'TESTING' => 'PASSWORD',
+      'ANOTHER_USER' => 'PASSWORD_FOR_ANOTHER_USER',
+    );
+```
+**NOTE**: Usernames and passwords _are_ case-sensitive.
+
+**Security Note**: It is _HIGHLY_ recommended you change this! By default it is set to admin admin! So PLEASE edit this by at least changing the password for security reasons!
+
+----===Show Indexes..?===
+```
+bool $config['show_indexes']
+```
+In SQLite indexes can display as their own "table" in the phpLiterAdmin list if you set $config['show\_indexes'] to true, you can of course still tell the difference between a table and an index as in the row **Type** it will say index.
+
+Just note that to whatever setting you set this to, users can change this for their current session. $config['show\_indexes'] is only used as the default value and users can click on "Show indexes" or "Don't show indexes" to do as they say ;)
+
+**Options**: true - Show indexes by default, false - Don't show indexes by default (Default).
+
+
+---
+
+### Locking phpLiterAdmin ###
+```
+int $config['lock_down']
+```
+A very useful feature, you can lock your phpLiterAdmin install and disallow anyone access to it. People of course will still be able to go to the file, but they won't be able to try to login. The only way to unlock phpLiterAdmin is to have file access.
+
+**Options**: 0 - Disabled (Default), 1 - Enabled.
+
+
+---
+
+### Configuring multiple databases ###
+```
+mixed $config['db']
+```
+Instead of having to constantly download, edit and upload the phpLiterAdmin file you can set multiple database files which you want to edit in the array. You can do this a couple of ways. If you only want 1 database to be able to be accessed, just set it something like this:
+```
+    $config['db'] = 'Database.db';
+    // But this works too :P
+    $config['db'] = array('Database.db');
+```
+But if you want to be able to switch between databases quickly simply make an array of multiple databases.
+```
+    $config['db'] = array('Database1.db', 'Database2.db');
+```
+When you then access phpLiterAdmin you will have a select box to choose from which database you want to manage.
+
+**Options**: Vary. Can be a string or an array.
+
+**Security Note**: There is _NO WAY_ to specify which users can access which database at this time. So if you do not want a user accessing a database thats in the array either don't have that user on this install or don't have that database on that install. Your choice!
+
+
+---
+
+### Setting the cookie name ###
+```
+string $config['cookie_name']
+```
+If you have multiple phpLiterAdmin installations on the same domain, it just might be useful to change this variable to something different unless you want to have to constantly login in over and over again for each install (unless each install has the same username and passwords).
+
+**Options**: Vary. By default it is phpLiterAdmin(NUMBER)
+
+
+---
+
+### Persistent connection ###
+```
+bool $config['persist']
+```
+If you want to have a persistent connection to the SQLite database set this to true. The benefit of using a persistent connection is really good, because with a regular connection each time the database has to be re-read and so do the indexes, but with a persistent connection it can use an older persistent connection instead.
+
+**Options**: true - Enabled (Default), false - Disabled.
+
+**NOTE**: For more information about using a persistent connection on an SQLite database, checkout the [sqlite\_popen](http://www.php.net/sqlite_popen) page at www.php.net
+
+
+---
+
+### PHP Information ###
+```
+int $config['phpinfo']
+```
+For possible security reasons you are allowed to specify whether or not people who are logged in may see the PHP Information of the server. By allowing this, it will allow people to look at everything [phpinfo](http://www.php.net/phpinfo) outputs.
+
+**Options**: 1 - Allow (Default), 0 - Disallow.
+
+**NOTE**: Sometimes some hosts disallow the ability to look at the phpinfo. It is rare, but it can be done ;)
